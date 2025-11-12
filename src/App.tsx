@@ -57,6 +57,12 @@ function App() {
     setExpenses(expenses.filter(expense => expense.id !== id))
   }
 
+  const handleUpdateExpense = (id: number, updatedExpense: Expense) => {
+    setExpenses(expenses.map(expense =>
+      expense.id === id ? updatedExpense : expense
+    ))
+  }
+
   const handleSwitchToRecords = () => {
     setActiveTab('records')
   }
@@ -106,7 +112,12 @@ function App() {
           </TabsContent>
 
           <TabsContent value="records">
-            <ExpenseList expenses={expenses} onDeleteExpense={handleDeleteExpense} />
+            <ExpenseList
+              expenses={expenses}
+              members={members}
+              onDeleteExpense={handleDeleteExpense}
+              onUpdateExpense={handleUpdateExpense}
+            />
           </TabsContent>
 
           <TabsContent value="settlement">
