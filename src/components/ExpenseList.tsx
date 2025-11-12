@@ -31,7 +31,7 @@ export default function ExpenseList({ expenses, onDeleteExpense }: ExpenseListPr
       <CardHeader>
         <CardTitle>支出記錄</CardTitle>
         <CardDescription>
-          共 {expenses.length} 筆支出，總金額 ${totalAmount.toFixed(2)}
+          共 {expenses.length} 筆支出，總金額 ${Math.round(totalAmount)}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -49,7 +49,7 @@ export default function ExpenseList({ expenses, onDeleteExpense }: ExpenseListPr
                       <div className="flex items-center gap-3">
                         <h3 className="text-lg font-semibold">{expense.itemName}</h3>
                         <span className="text-2xl font-bold text-primary">
-                          ${expense.amount.toFixed(2)}
+                          ${Math.round(expense.amount)}
                         </span>
                       </div>
 
@@ -70,7 +70,7 @@ export default function ExpenseList({ expenses, onDeleteExpense }: ExpenseListPr
                       </div>
 
                       <div className="text-xs text-muted-foreground">
-                        每人應付: ${(expense.amount / expense.participants.length).toFixed(2)}
+                        每人應付: ${Math.round(expense.amount / expense.participants.length)}
                       </div>
                     </div>
 

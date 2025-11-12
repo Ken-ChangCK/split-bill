@@ -141,11 +141,11 @@ export default function SettlementResult({ members, expenses }: SettlementResult
                       <span className="font-medium">{balance.name}</span>
                       {balance.balance > 0.01 ? (
                         <Badge className="bg-green-500 hover:bg-green-600">
-                          應收 ${balance.balance.toFixed(2)}
+                          應收 ${Math.round(balance.balance)}
                         </Badge>
                       ) : balance.balance < -0.01 ? (
                         <Badge variant="destructive">
-                          應付 ${Math.abs(balance.balance).toFixed(2)}
+                          應付 ${Math.round(Math.abs(balance.balance))}
                         </Badge>
                       ) : (
                         <Badge variant="secondary">已結清</Badge>
@@ -176,7 +176,7 @@ export default function SettlementResult({ members, expenses }: SettlementResult
                             <Badge variant="outline">{transaction.to}</Badge>
                           </div>
                           <span className="text-xl font-bold text-primary">
-                            ${transaction.amount.toFixed(2)}
+                            ${Math.round(transaction.amount)}
                           </span>
                         </div>
                       </CardContent>
