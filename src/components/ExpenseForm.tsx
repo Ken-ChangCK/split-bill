@@ -5,6 +5,8 @@ import { Select } from '@/components/ui/select'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Plus } from 'lucide-react'
+import ReceiptUpload from '@/components/ReceiptUpload'
+import { ReceiptData } from '@/services/geminiService'
 
 interface Expense {
   id: number
@@ -76,6 +78,21 @@ export default function ExpenseForm({ members, onAddExpense, onSwitchToRecords }
     setParticipants(selectedOptions)
   }
 
+  const handleReceiptAnalyzed = (data: ReceiptData) => {
+    // 自動填入發票識別的資訊
+    if (data.storeName && data.date) {
+      setItemName(`${data.storeName} (${data.date})`)
+    } else if (data.storeName) {
+      setItemName(data.storeName)
+    }
+
+    if (data.amount > 0) {
+      setAmount(data.amount.toString())
+    }
+
+    setError('')
+  }
+
   if (members.length === 0) {
     return (
       <Card>
@@ -101,6 +118,14 @@ export default function ExpenseForm({ members, onAddExpense, onSwitchToRecords }
         <CardDescription>記錄一筆新的支出</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        <ReceiptUpload onReceiptAnalyzed={handleReceiptAnalyzed} />
+
+        <div className="border-t pt-4">
+          <p className="text-sm text-muted-foreground mb-4">
+            或手動輸入支出資訊
+          </p>
+        </div>
+
         <div>
           <label className="text-sm font-medium mb-2 block">項目名稱</label>
           <Input
