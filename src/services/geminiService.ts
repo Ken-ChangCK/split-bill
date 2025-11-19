@@ -68,7 +68,7 @@ export async function analyzeReceipt(imageFile: File): Promise<ReceiptData> {
     // 使用 @google/genai 的 API 格式
     // 直接使用模型 ID，不加 models/ 前綴
     const response = await genAI.models.generateContent({
-      model: 'gemini-2.5-flash', // ✅ 免費且最推薦
+      model: 'gemini-2.0-flash', // ✅ 免費且最推薦
       contents: [
         {
           role: 'user',

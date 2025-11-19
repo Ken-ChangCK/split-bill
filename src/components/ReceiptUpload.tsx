@@ -12,6 +12,7 @@ export default function ReceiptUpload({ onReceiptAnalyzed }: ReceiptUploadProps)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const cameraInputRef = useRef<HTMLInputElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -63,6 +64,13 @@ export default function ReceiptUpload({ onReceiptAnalyzed }: ReceiptUploadProps)
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
+    if (cameraInputRef.current) {
+      cameraInputRef.current.value = ''
+    }
+  }
+
+  const handleCameraClick = () => {
+    cameraInputRef.current?.click()
   }
 
   const handleUploadClick = () => {
@@ -77,7 +85,18 @@ export default function ReceiptUpload({ onReceiptAnalyzed }: ReceiptUploadProps)
       </div>
 
       {!previewUrl ? (
-        <div>
+        <div className="space-y-3">
+          {/* 拍照 input - 在手機上會直接開啟相機 */}
+          <input
+            ref={cameraInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={handleFileSelect}
+            className="hidden"
+            disabled={isAnalyzing}
+          />
+          {/* 相簿選擇 input */}
           <input
             ref={fileInputRef}
             type="file"
@@ -86,15 +105,29 @@ export default function ReceiptUpload({ onReceiptAnalyzed }: ReceiptUploadProps)
             className="hidden"
             disabled={isAnalyzing}
           />
+
+          {/* 拍照按鈕 */}
+          <Button
+            type="button"
+            variant="default"
+            onClick={handleCameraClick}
+            disabled={isAnalyzing}
+            className="w-full flex items-center justify-center gap-2 h-16"
+          >
+            <Camera className="h-5 w-5" />
+            拍照上傳發票
+          </Button>
+
+          {/* 從相簿選擇按鈕 */}
           <Button
             type="button"
             variant="outline"
             onClick={handleUploadClick}
             disabled={isAnalyzing}
-            className="w-full flex items-center justify-center gap-2 border-dashed border-2 h-32"
+            className="w-full flex items-center justify-center gap-2 h-16"
           >
             <Upload className="h-5 w-5" />
-            點擊上傳發票照片
+            從相簿選擇
           </Button>
         </div>
       ) : (
@@ -133,7 +166,7 @@ export default function ReceiptUpload({ onReceiptAnalyzed }: ReceiptUploadProps)
       )}
 
       <p className="text-xs text-muted-foreground">
-        支援 JPG、PNG 格式，檔案大小限制 10MB。上傳後會自動識別店家名稱、金額和日期。
+        可直接拍照或從相簿選擇發票圖片，支援 JPG、PNG 格式，檔案大小限制 10MB。上傳後會自動識別店家名稱、金額和日期。
       </p>
     </div>
   )
