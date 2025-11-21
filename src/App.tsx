@@ -4,6 +4,8 @@ import MemberManagement from '@/components/MemberManagement'
 import ExpenseForm from '@/components/ExpenseForm'
 import ExpenseList from '@/components/ExpenseList'
 import SettlementResult from '@/components/SettlementResult'
+import Login from '@/components/Login'
+import { getTodayPassword, verifyAuthToken } from '@/utils/auth'
 
 interface Expense {
   id: number
@@ -14,9 +16,36 @@ interface Expense {
 }
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [activeTab, setActiveTab] = useState('members')
   const [members, setMembers] = useState<string[]>([])
   const [expenses, setExpenses] = useState<Expense[]>([])
+
+  // 檢查登入狀態
+  useEffect(() => {
+    const checkAuth = async () => {
+      const storedToken = localStorage.getItem('splitBillAuthToken')
+      const todayPassword = getTodayPassword()
+
+      // 驗證 token 是否有效且是今天的
+      if (storedToken) {
+        const isValid = await verifyAuthToken(storedToken, todayPassword)
+        if (isValid) {
+          setIsAuthenticated(true)
+          return
+        }
+      }
+
+      // token 無效或不存在，清除並設定為未認證
+      localStorage.removeItem('splitBillAuthToken')
+      // 同時清除舊版的認證資料（如果存在）
+      localStorage.removeItem('splitBillAuth')
+      localStorage.removeItem('splitBillAuthDate')
+      setIsAuthenticated(false)
+    }
+
+    checkAuth()
+  }, [])
 
   // 從 localStorage 載入資料
   useEffect(() => {
@@ -65,6 +94,15 @@ function App() {
 
   const handleSwitchToRecords = () => {
     setActiveTab('records')
+  }
+
+  const handleLogin = () => {
+    setIsAuthenticated(true)
+  }
+
+  // 如果未認證，顯示登入頁面
+  if (!isAuthenticated) {
+    return <Login onLogin={handleLogin} />
   }
 
   return (
