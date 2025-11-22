@@ -37,6 +37,20 @@ app.use(cors({
 
 app.use(express.json({ limit: '10mb' }))
 
+// 確保資料庫連線的中介軟體（Vercel serverless 環境）
+app.use(async (req, res, next) => {
+  try {
+    await connectDB()
+    next()
+  } catch (error) {
+    console.error('Database connection middleware error:', error)
+    res.status(503).json({
+      success: false,
+      message: '資料庫連線失敗，請稍後再試'
+    })
+  }
+})
+
 // API Rate Limiting（所有 API 路由）
 app.use('/api', apiLimiter)
 
