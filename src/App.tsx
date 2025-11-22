@@ -5,7 +5,7 @@ import ExpenseForm from '@/components/ExpenseForm'
 import ExpenseList from '@/components/ExpenseList'
 import SettlementResult from '@/components/SettlementResult'
 import Login from '@/components/Login'
-import { getTodayPassword, verifyAuthToken } from '@/utils/auth'
+import { verifyToken } from '@/api/auth'
 
 interface Expense {
   id: number
@@ -25,12 +25,11 @@ function App() {
   useEffect(() => {
     const checkAuth = async () => {
       const storedToken = localStorage.getItem('splitBillAuthToken')
-      const todayPassword = getTodayPassword()
 
-      // 驗證 token 是否有效且是今天的
+      // 如果有 token，向後端驗證
       if (storedToken) {
-        const isValid = await verifyAuthToken(storedToken, todayPassword)
-        if (isValid) {
+        const response = await verifyToken(storedToken)
+        if (response.success) {
           setIsAuthenticated(true)
           return
         }
@@ -38,9 +37,6 @@ function App() {
 
       // token 無效或不存在，清除並設定為未認證
       localStorage.removeItem('splitBillAuthToken')
-      // 同時清除舊版的認證資料（如果存在）
-      localStorage.removeItem('splitBillAuth')
-      localStorage.removeItem('splitBillAuthDate')
       setIsAuthenticated(false)
     }
 

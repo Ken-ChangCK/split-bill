@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { getTodayPassword, generateAuthToken } from '@/utils/auth'
+import { login } from '@/api/auth'
 
 interface LoginProps {
   onLogin: () => void
@@ -17,22 +17,26 @@ function Login({ onLogin }: LoginProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setError('')
 
-    const correctPassword = getTodayPassword()
+    try {
+      // 調用後端 API 驗證密碼
+      const response = await login(password)
 
-    if (password === correctPassword) {
-      // 生成加密的 token（而不是直接存密碼或 'true'）
-      const authToken = await generateAuthToken(correctPassword)
-
-      // 儲存加密的 token 到 localStorage
-      localStorage.setItem('splitBillAuthToken', authToken)
-      onLogin()
-    } else {
-      setError('密碼錯誤，請輸入今天的日期（YYYYMMDD）')
+      if (response.success && response.token) {
+        // 儲存 JWT token 到 localStorage
+        localStorage.setItem('splitBillAuthToken', response.token)
+        onLogin()
+      } else {
+        setError(response.message || '登入失敗，請重試')
+        setPassword('')
+      }
+    } catch (error) {
+      setError('登入失敗，請檢查網路連線')
       setPassword('')
+    } finally {
+      setIsLoading(false)
     }
-
-    setIsLoading(false)
   }
 
   return (
