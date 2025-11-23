@@ -25,6 +25,18 @@ export const apiLimiter = rateLimit({
   legacyHeaders: false,
 })
 
+// Channel Creation Rate Limiter - 防止濫用創建頻道
+export const createChannelLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 小時
+  max: 3, // 最多 3 次創建請求
+  message: {
+    success: false,
+    message: '創建頻道過於頻繁，請 1 小時後再試'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+})
+
 // Helmet - HTTP headers 安全
 export const helmetConfig = helmet({
   contentSecurityPolicy: {
