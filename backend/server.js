@@ -5,6 +5,7 @@ import connectDB from './config/db.js'
 import authRoutes from './routes/auth.js'
 import cronRoutes from './routes/cron.js'
 import channelRoutes from './routes/channel.js'
+import membersRoutes from './routes/members.js'
 import { startPasswordCron } from './jobs/passwordCron.js'
 import { helmetConfig, apiLimiter } from './middleware/security.js'
 
@@ -59,6 +60,7 @@ app.use('/api', apiLimiter)
 app.use('/api/auth', authRoutes)
 app.use('/api/cron', cronRoutes)
 app.use('/api/channels', channelRoutes)
+app.use('/api/channels', membersRoutes)
 
 // 健康檢查端點
 app.get('/health', (req, res) => {
