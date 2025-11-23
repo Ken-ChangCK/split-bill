@@ -6,6 +6,7 @@ import authRoutes from './routes/auth.js'
 import cronRoutes from './routes/cron.js'
 import channelRoutes from './routes/channel.js'
 import membersRoutes from './routes/members.js'
+import expensesRoutes from './routes/expenses.js'
 import { startPasswordCron } from './jobs/passwordCron.js'
 import { helmetConfig, apiLimiter } from './middleware/security.js'
 
@@ -61,6 +62,7 @@ app.use('/api/auth', authRoutes)
 app.use('/api/cron', cronRoutes)
 app.use('/api/channels', channelRoutes)
 app.use('/api/channels', membersRoutes)
+app.use('/api/channels', expensesRoutes)
 
 // 健康檢查端點
 app.get('/health', (req, res) => {
