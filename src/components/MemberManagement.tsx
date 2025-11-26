@@ -4,18 +4,21 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { X, UserPlus } from 'lucide-react'
+import { X, UserPlus, Loader2 } from 'lucide-react'
+import { addMember, removeMember } from '@/api/members'
 
 interface MemberManagementProps {
+  accessKey: string
   members: string[]
-  setMembers: (members: string[]) => void
+  onMembersUpdated: () => void
 }
 
-export default function MemberManagement({ members, setMembers }: MemberManagementProps) {
+export default function MemberManagement({ accessKey, members, onMembersUpdated }: MemberManagementProps) {
   const [newMember, setNewMember] = useState('')
   const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
-  const handleAddMember = () => {
+  const handleAddMember = async () => {
     if (!newMember.trim()) {
       setError('請輸入成員名稱')
       return
@@ -26,14 +29,45 @@ export default function MemberManagement({ members, setMembers }: MemberManageme
       return
     }
 
-    setMembers([...members, newMember.trim()])
-    setNewMember('')
+    setIsLoading(true)
     setError('')
+
+    try {
+      const response = await addMember(accessKey, newMember.trim())
+
+      if (response.success) {
+        setNewMember('')
+        onMembersUpdated()
+      } else {
+        setError(response.message || '新增成員失敗')
+      }
+    } catch (error) {
+      setError('無法連接到伺服器，請稍後再試')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  const handleRemoveMember = (memberToRemove: string) => {
-    if (window.confirm(`確定要刪除成員「${memberToRemove}」嗎?`)) {
-      setMembers(members.filter(member => member !== memberToRemove))
+  const handleRemoveMember = async (memberToRemove: string) => {
+    if (!window.confirm(`確定要刪除成員「${memberToRemove}」嗎?`)) {
+      return
+    }
+
+    setIsLoading(true)
+    setError('')
+
+    try {
+      const response = await removeMember(accessKey, memberToRemove)
+
+      if (response.success) {
+        onMembersUpdated()
+      } else {
+        setError(response.message || '刪除成員失敗')
+      }
+    } catch (error) {
+      setError('無法連接到伺服器，請稍後再試')
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -56,9 +90,18 @@ export default function MemberManagement({ members, setMembers }: MemberManageme
             value={newMember}
             onChange={(e) => setNewMember(e.target.value)}
             onKeyPress={handleKeyPress}
+            disabled={isLoading}
           />
-          <Button onClick={handleAddMember} className="flex items-center gap-2">
-            <UserPlus className="h-4 w-4" />
+          <Button
+            onClick={handleAddMember}
+            className="flex items-center gap-2"
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <UserPlus className="h-4 w-4" />
+            )}
             新增
           </Button>
         </div>
@@ -84,7 +127,8 @@ export default function MemberManagement({ members, setMembers }: MemberManageme
                 {member}
                 <button
                   onClick={() => handleRemoveMember(member)}
-                  className="ml-1 hover:text-destructive transition-colors"
+                  className="ml-1 hover:text-destructive transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={isLoading}
                 >
                   <X className="h-4 w-4" />
                 </button>
