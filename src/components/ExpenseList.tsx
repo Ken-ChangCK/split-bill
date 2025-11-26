@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Trash2, Edit2, Save, X } from 'lucide-react'
+import { Trash2, Edit2, Save, X, Loader2 } from 'lucide-react'
+import { removeExpense, updateExpense } from '@/api/expenses'
 
 interface Expense {
   id: number
@@ -16,20 +17,38 @@ interface Expense {
 }
 
 interface ExpenseListProps {
+  accessKey: string
   expenses: Expense[]
   members: string[]
-  onDeleteExpense: (id: number) => void
-  onUpdateExpense: (id: number, updatedExpense: Expense) => void
+  onExpensesUpdated: () => void
 }
 
-export default function ExpenseList({ expenses, members, onDeleteExpense, onUpdateExpense }: ExpenseListProps) {
+export default function ExpenseList({ accessKey, expenses, members, onExpensesUpdated }: ExpenseListProps) {
   const [editingId, setEditingId] = useState<number | null>(null)
   const [editForm, setEditForm] = useState<Expense | null>(null)
   const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
-  const handleDelete = (expense: Expense) => {
-    if (window.confirm(`確定要刪除支出「${expense.itemName}」嗎?`)) {
-      onDeleteExpense(expense.id)
+  const handleDelete = async (expense: Expense) => {
+    if (!window.confirm(`確定要刪除支出「${expense.itemName}」嗎?`)) {
+      return
+    }
+
+    setIsLoading(true)
+    setError('')
+
+    try {
+      const response = await removeExpense(accessKey, expense.id)
+
+      if (response.success) {
+        onExpensesUpdated()
+      } else {
+        setError(response.message || '刪除支出失敗')
+      }
+    } catch (error) {
+      setError('無法連接到伺服器，請稍後再試')
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -45,7 +64,7 @@ export default function ExpenseList({ expenses, members, onDeleteExpense, onUpda
     setError('')
   }
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (!editForm) return
 
     // 驗證
@@ -69,10 +88,32 @@ export default function ExpenseList({ expenses, members, onDeleteExpense, onUpda
       return
     }
 
-    onUpdateExpense(editForm.id, editForm)
-    setEditingId(null)
-    setEditForm(null)
+    setIsLoading(true)
     setError('')
+
+    try {
+      // 更新支出（不包含 id）
+      const expenseData = {
+        itemName: editForm.itemName.trim(),
+        amount: editForm.amount,
+        payer: editForm.payer,
+        participants: editForm.participants
+      }
+
+      const response = await updateExpense(accessKey, editForm.id, expenseData)
+
+      if (response.success) {
+        setEditingId(null)
+        setEditForm(null)
+        onExpensesUpdated()
+      } else {
+        setError(response.message || '更新支出失敗')
+      }
+    } catch (error) {
+      setError('無法連接到伺服器，請稍後再試')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleParticipantsChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -109,6 +150,7 @@ export default function ExpenseList({ expenses, members, onDeleteExpense, onUpda
                         <Input
                           value={editForm.itemName}
                           onChange={(e) => setEditForm({ ...editForm, itemName: e.target.value })}
+                          disabled={isLoading}
                         />
                       </div>
 
@@ -120,6 +162,7 @@ export default function ExpenseList({ expenses, members, onDeleteExpense, onUpda
                           onChange={(e) => setEditForm({ ...editForm, amount: parseFloat(e.target.value) || 0 })}
                           min="0"
                           step="1"
+                          disabled={isLoading}
                         />
                       </div>
 
@@ -128,6 +171,7 @@ export default function ExpenseList({ expenses, members, onDeleteExpense, onUpda
                         <Select
                           value={editForm.payer}
                           onChange={(e) => setEditForm({ ...editForm, payer: e.target.value })}
+                          disabled={isLoading}
                         >
                           <option value="">請選擇付款人</option>
                           {members.map((member) => (
@@ -147,6 +191,7 @@ export default function ExpenseList({ expenses, members, onDeleteExpense, onUpda
                           value={editForm.participants}
                           onChange={handleParticipantsChange}
                           className="min-h-[120px]"
+                          disabled={isLoading}
                         >
                           {members.map((member) => (
                             <option key={member} value={member}>
@@ -171,14 +216,20 @@ export default function ExpenseList({ expenses, members, onDeleteExpense, onUpda
                         <Button
                           onClick={handleSaveEdit}
                           className="flex-1 flex items-center justify-center gap-2"
+                          disabled={isLoading}
                         >
-                          <Save className="h-4 w-4" />
-                          儲存
+                          {isLoading ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Save className="h-4 w-4" />
+                          )}
+                          {isLoading ? '儲存中...' : '儲存'}
                         </Button>
                         <Button
                           onClick={handleCancelEdit}
                           variant="outline"
                           className="flex-1 flex items-center justify-center gap-2"
+                          disabled={isLoading}
                         >
                           <X className="h-4 w-4" />
                           取消
@@ -222,6 +273,7 @@ export default function ExpenseList({ expenses, members, onDeleteExpense, onUpda
                           variant="outline"
                           size="icon"
                           onClick={() => handleEdit(expense)}
+                          disabled={isLoading}
                         >
                           <Edit2 className="h-4 w-4" />
                         </Button>
@@ -229,8 +281,13 @@ export default function ExpenseList({ expenses, members, onDeleteExpense, onUpda
                           variant="destructive"
                           size="icon"
                           onClick={() => handleDelete(expense)}
+                          disabled={isLoading}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          {isLoading ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
                         </Button>
                       </div>
                     </div>

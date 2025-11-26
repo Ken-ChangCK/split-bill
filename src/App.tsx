@@ -214,10 +214,10 @@ function App() {
 
           <TabsContent value="records">
             <ExpenseList
+              accessKey={currentChannel.accessKey}
               expenses={expenses}
               members={members}
-              onDeleteExpense={handleDeleteExpense}
-              onUpdateExpense={handleUpdateExpense}
+              onExpensesUpdated={refreshChannel}
             />
           </TabsContent>
 
