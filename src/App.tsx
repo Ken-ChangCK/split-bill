@@ -205,8 +205,9 @@ function App() {
 
           <TabsContent value="add">
             <ExpenseForm
+              accessKey={currentChannel.accessKey}
               members={members}
-              onAddExpense={handleAddExpense}
+              onExpenseAdded={refreshChannel}
               onSwitchToRecords={handleSwitchToRecords}
             />
           </TabsContent>

@@ -4,9 +4,10 @@ import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Plus } from 'lucide-react'
+import { Plus, Loader2 } from 'lucide-react'
 import ReceiptUpload from '@/components/ReceiptUpload'
 import { ReceiptData } from '@/services/geminiService'
+import { addExpense } from '@/api/expenses'
 
 interface Expense {
   id: number
@@ -17,19 +18,21 @@ interface Expense {
 }
 
 interface ExpenseFormProps {
+  accessKey: string
   members: string[]
-  onAddExpense: (expense: Expense) => void
+  onExpenseAdded: () => void
   onSwitchToRecords: () => void
 }
 
-export default function ExpenseForm({ members, onAddExpense, onSwitchToRecords }: ExpenseFormProps) {
+export default function ExpenseForm({ accessKey, members, onExpenseAdded, onSwitchToRecords }: ExpenseFormProps) {
   const [itemName, setItemName] = useState('')
   const [amount, setAmount] = useState('')
   const [payer, setPayer] = useState('')
   const [participants, setParticipants] = useState<string[]>([])
   const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     // 驗證
     if (!itemName.trim()) {
       setError('請輸入項目名稱')
@@ -51,26 +54,40 @@ export default function ExpenseForm({ members, onAddExpense, onSwitchToRecords }
       return
     }
 
-    // 建立支出記錄
-    const expense: Expense = {
-      id: Date.now(),
-      itemName: itemName.trim(),
-      amount: parseFloat(amount),
-      payer,
-      participants
-    }
-
-    onAddExpense(expense)
-
-    // 清空表單
-    setItemName('')
-    setAmount('')
-    setPayer('')
-    setParticipants([])
+    setIsLoading(true)
     setError('')
 
-    // 自動切換到支出記錄 Tab
-    onSwitchToRecords()
+    try {
+      // 建立支出記錄（不包含 id，讓後端生成）
+      const expenseData = {
+        itemName: itemName.trim(),
+        amount: parseFloat(amount),
+        payer,
+        participants
+      }
+
+      const response = await addExpense(accessKey, expenseData)
+
+      if (response.success) {
+        // 清空表單
+        setItemName('')
+        setAmount('')
+        setPayer('')
+        setParticipants([])
+
+        // 通知父元件更新資料
+        onExpenseAdded()
+
+        // 自動切換到支出記錄 Tab
+        onSwitchToRecords()
+      } else {
+        setError(response.message || '新增支出失敗')
+      }
+    } catch (error) {
+      setError('無法連接到伺服器，請稍後再試')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleParticipantsChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -132,6 +149,7 @@ export default function ExpenseForm({ members, onAddExpense, onSwitchToRecords }
             placeholder="例如：晚餐、電影票"
             value={itemName}
             onChange={(e) => setItemName(e.target.value)}
+            disabled={isLoading}
           />
         </div>
 
@@ -144,12 +162,13 @@ export default function ExpenseForm({ members, onAddExpense, onSwitchToRecords }
             onChange={(e) => setAmount(e.target.value)}
             min="0"
             step="0.01"
+            disabled={isLoading}
           />
         </div>
 
         <div>
           <label className="text-sm font-medium mb-2 block">付款人</label>
-          <Select value={payer} onChange={(e) => setPayer(e.target.value)}>
+          <Select value={payer} onChange={(e) => setPayer(e.target.value)} disabled={isLoading}>
             <option value="">請選擇付款人</option>
             {members.map((member) => (
               <option key={member} value={member}>
@@ -168,6 +187,7 @@ export default function ExpenseForm({ members, onAddExpense, onSwitchToRecords }
             value={participants}
             onChange={handleParticipantsChange}
             className="min-h-[120px]"
+            disabled={isLoading}
           >
             {members.map((member) => (
               <option key={member} value={member}>
@@ -188,9 +208,17 @@ export default function ExpenseForm({ members, onAddExpense, onSwitchToRecords }
           </Alert>
         )}
 
-        <Button onClick={handleSubmit} className="w-full flex items-center justify-center gap-2">
-          <Plus className="h-4 w-4" />
-          新增支出
+        <Button
+          onClick={handleSubmit}
+          className="w-full flex items-center justify-center gap-2"
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Plus className="h-4 w-4" />
+          )}
+          {isLoading ? '新增中...' : '新增支出'}
         </Button>
       </CardContent>
     </Card>
