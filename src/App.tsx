@@ -7,7 +7,13 @@ import SettlementResult from '@/components/SettlementResult'
 import ChannelGate from '@/components/ChannelGate'
 import ChannelHeader from '@/components/ChannelHeader'
 import { Channel } from '@/types/channel'
-import { getChannel } from '@/api/channel'
+import { getChannel, createChannel } from '@/api/channel'
+import { updateMembers } from '@/api/members'
+import { addExpense } from '@/api/expenses'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 interface Expense {
   id: number
@@ -23,6 +29,11 @@ function App() {
   const [activeTab, setActiveTab] = useState('members')
   const [members, setMembers] = useState<string[]>([])
   const [expenses, setExpenses] = useState<Expense[]>([])
+  const [showMigrationDialog, setShowMigrationDialog] = useState(false)
+  const [migrationData, setMigrationData] = useState<{ members: string[], expenses: Expense[] } | null>(null)
+  const [migrationChannelName, setMigrationChannelName] = useState('我的分帳')
+  const [isMigrating, setIsMigrating] = useState(false)
+  const [migrationError, setMigrationError] = useState('')
 
   // 啟動時檢查 localStorage 中的頻道金鑰
   useEffect(() => {
@@ -46,6 +57,21 @@ function App() {
           console.error('Failed to load channel:', error)
           localStorage.removeItem('currentChannelKey')
         }
+      } else {
+        // 如果沒有頻道金鑰，檢查是否有舊資料
+        const oldMembers = localStorage.getItem('splitBillMembers')
+        const oldExpenses = localStorage.getItem('splitBillExpenses')
+
+        if (oldMembers || oldExpenses) {
+          // 偵測到舊資料，顯示遷移對話框
+          const parsedMembers = oldMembers ? JSON.parse(oldMembers) : []
+          const parsedExpenses = oldExpenses ? JSON.parse(oldExpenses) : []
+
+          if (parsedMembers.length > 0 || parsedExpenses.length > 0) {
+            setMigrationData({ members: parsedMembers, expenses: parsedExpenses })
+            setShowMigrationDialog(true)
+          }
+        }
       }
 
       setIsLoading(false)
@@ -54,60 +80,88 @@ function App() {
     checkChannel()
   }, [])
 
-  // 從 localStorage 載入舊資料（向下相容）
-  useEffect(() => {
-    // 只在沒有頻道時載入舊資料
-    if (!currentChannel) {
-      const savedMembers = localStorage.getItem('splitBillMembers')
-      const savedExpenses = localStorage.getItem('splitBillExpenses')
-
-      if (savedMembers) {
-        try {
-          setMembers(JSON.parse(savedMembers))
-        } catch (error) {
-          console.error('Failed to parse members from localStorage', error)
-        }
-      }
-
-      if (savedExpenses) {
-        try {
-          setExpenses(JSON.parse(savedExpenses))
-        } catch (error) {
-          console.error('Failed to parse expenses from localStorage', error)
-        }
-      }
-    }
-  }, [currentChannel])
-
-  // 儲存資料到 localStorage（向下相容，後續階段會改用 API）
-  useEffect(() => {
-    if (!currentChannel) {
-      localStorage.setItem('splitBillMembers', JSON.stringify(members))
-    }
-  }, [members, currentChannel])
-
-  useEffect(() => {
-    if (!currentChannel) {
-      localStorage.setItem('splitBillExpenses', JSON.stringify(expenses))
-    }
-  }, [expenses, currentChannel])
-
-  const handleAddExpense = (expense: Expense) => {
-    setExpenses([...expenses, expense])
-  }
-
-  const handleDeleteExpense = (id: number) => {
-    setExpenses(expenses.filter(expense => expense.id !== id))
-  }
-
-  const handleUpdateExpense = (id: number, updatedExpense: Expense) => {
-    setExpenses(expenses.map(expense =>
-      expense.id === id ? updatedExpense : expense
-    ))
-  }
 
   const handleSwitchToRecords = () => {
     setActiveTab('records')
+  }
+
+  // 處理資料遷移
+  const handleMigration = async () => {
+    if (!migrationData) return
+
+    setIsMigrating(true)
+    setMigrationError('')
+
+    try {
+      // 1. 建立新頻道
+      const createResponse = await createChannel(migrationChannelName.trim() || '我的分帳')
+
+      if (!createResponse.success || !createResponse.channel) {
+        setMigrationError(createResponse.message || '建立頻道失敗')
+        setIsMigrating(false)
+        return
+      }
+
+      const newChannel = createResponse.channel
+
+      // 2. 匯入成員資料
+      if (migrationData.members.length > 0) {
+        const membersResponse = await updateMembers(newChannel.accessKey, migrationData.members)
+        if (!membersResponse.success) {
+          setMigrationError('匯入成員失敗：' + membersResponse.message)
+          setIsMigrating(false)
+          return
+        }
+      }
+
+      // 3. 匯入支出資料
+      for (const expense of migrationData.expenses) {
+        const expenseData = {
+          itemName: expense.itemName,
+          amount: expense.amount,
+          payer: expense.payer,
+          participants: expense.participants
+        }
+        const expenseResponse = await addExpense(newChannel.accessKey, expenseData)
+        if (!expenseResponse.success) {
+          setMigrationError('匯入支出失敗：' + expenseResponse.message)
+          setIsMigrating(false)
+          return
+        }
+      }
+
+      // 4. 清除舊資料
+      localStorage.removeItem('splitBillMembers')
+      localStorage.removeItem('splitBillExpenses')
+
+      // 5. 儲存新的頻道金鑰
+      localStorage.setItem('currentChannelKey', newChannel.accessKey)
+
+      // 6. 重新載入頻道資料
+      const finalResponse = await getChannel(newChannel.accessKey)
+      if (finalResponse.success && finalResponse.channel) {
+        setCurrentChannel(finalResponse.channel)
+        setMembers(finalResponse.channel.members)
+        setExpenses(finalResponse.channel.expenses)
+      }
+
+      // 7. 關閉遷移對話框
+      setShowMigrationDialog(false)
+      setMigrationData(null)
+      setIsMigrating(false)
+    } catch (error) {
+      console.error('Migration error:', error)
+      setMigrationError('遷移過程中發生錯誤')
+      setIsMigrating(false)
+    }
+  }
+
+  // 取消遷移，清除舊資料
+  const handleCancelMigration = () => {
+    localStorage.removeItem('splitBillMembers')
+    localStorage.removeItem('splitBillExpenses')
+    setShowMigrationDialog(false)
+    setMigrationData(null)
   }
 
   // 加入頻道成功
@@ -155,6 +209,77 @@ function App() {
         <div className="text-center">
           <div className="text-xl text-gray-600">載入中...</div>
         </div>
+      </div>
+    )
+  }
+
+  // 顯示遷移對話框
+  if (showMigrationDialog && migrationData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 flex items-center justify-center p-4">
+        <Card className="max-w-2xl w-full">
+          <CardHeader>
+            <CardTitle>偵測到舊資料</CardTitle>
+            <CardDescription>
+              我們發現您有舊版本的分帳資料，是否要匯入到新的頻道系統？
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Alert>
+              <AlertDescription>
+                <div className="space-y-2">
+                  <p><strong>找到的資料：</strong></p>
+                  <ul className="list-disc list-inside ml-2">
+                    {migrationData.members.length > 0 && (
+                      <li>{migrationData.members.length} 位成員：{migrationData.members.join('、')}</li>
+                    )}
+                    {migrationData.expenses.length > 0 && (
+                      <li>{migrationData.expenses.length} 筆支出記錄</li>
+                    )}
+                  </ul>
+                </div>
+              </AlertDescription>
+            </Alert>
+
+            <div>
+              <label className="text-sm font-medium mb-2 block">新頻道名稱</label>
+              <Input
+                value={migrationChannelName}
+                onChange={(e) => setMigrationChannelName(e.target.value)}
+                placeholder="例如：我的分帳"
+                disabled={isMigrating}
+              />
+            </div>
+
+            {migrationError && (
+              <Alert variant="destructive">
+                <AlertDescription>{migrationError}</AlertDescription>
+              </Alert>
+            )}
+
+            <div className="flex gap-3">
+              <Button
+                onClick={handleMigration}
+                className="flex-1"
+                disabled={isMigrating}
+              >
+                {isMigrating ? '匯入中...' : '匯入到新頻道'}
+              </Button>
+              <Button
+                onClick={handleCancelMigration}
+                variant="outline"
+                className="flex-1"
+                disabled={isMigrating}
+              >
+                不要匯入（清除舊資料）
+              </Button>
+            </div>
+
+            <p className="text-xs text-muted-foreground text-center">
+              匯入後，舊資料將被清除，所有資料將儲存到新的頻道系統中。
+            </p>
+          </CardContent>
+        </Card>
       </div>
     )
   }
