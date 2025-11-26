@@ -4,8 +4,10 @@ import MemberManagement from '@/components/MemberManagement'
 import ExpenseForm from '@/components/ExpenseForm'
 import ExpenseList from '@/components/ExpenseList'
 import SettlementResult from '@/components/SettlementResult'
-import Login from '@/components/Login'
-import { verifyToken } from '@/api/auth'
+import ChannelGate from '@/components/ChannelGate'
+import ChannelHeader from '@/components/ChannelHeader'
+import { Channel } from '@/types/channel'
+import { getChannel } from '@/api/channel'
 
 interface Expense {
   id: number
@@ -16,63 +18,79 @@ interface Expense {
 }
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [currentChannel, setCurrentChannel] = useState<Channel | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('members')
   const [members, setMembers] = useState<string[]>([])
   const [expenses, setExpenses] = useState<Expense[]>([])
 
-  // 檢查登入狀態
+  // 啟動時檢查 localStorage 中的頻道金鑰
   useEffect(() => {
-    const checkAuth = async () => {
-      const storedToken = localStorage.getItem('splitBillAuthToken')
+    const checkChannel = async () => {
+      const storedKey = localStorage.getItem('currentChannelKey')
 
-      // 如果有 token，向後端驗證
-      if (storedToken) {
-        const response = await verifyToken(storedToken)
-        if (response.success) {
-          setIsAuthenticated(true)
-          return
+      // 如果有金鑰，向後端驗證並取得頻道資料
+      if (storedKey) {
+        try {
+          const response = await getChannel(storedKey)
+          if (response.success && response.channel) {
+            setCurrentChannel(response.channel)
+            // 從頻道資料載入成員和支出
+            setMembers(response.channel.members)
+            setExpenses(response.channel.expenses)
+          } else {
+            // 金鑰無效，清除
+            localStorage.removeItem('currentChannelKey')
+          }
+        } catch (error) {
+          console.error('Failed to load channel:', error)
+          localStorage.removeItem('currentChannelKey')
         }
       }
 
-      // token 無效或不存在，清除並設定為未認證
-      localStorage.removeItem('splitBillAuthToken')
-      setIsAuthenticated(false)
+      setIsLoading(false)
     }
 
-    checkAuth()
+    checkChannel()
   }, [])
 
-  // 從 localStorage 載入資料
+  // 從 localStorage 載入舊資料（向下相容）
   useEffect(() => {
-    const savedMembers = localStorage.getItem('splitBillMembers')
-    const savedExpenses = localStorage.getItem('splitBillExpenses')
+    // 只在沒有頻道時載入舊資料
+    if (!currentChannel) {
+      const savedMembers = localStorage.getItem('splitBillMembers')
+      const savedExpenses = localStorage.getItem('splitBillExpenses')
 
-    if (savedMembers) {
-      try {
-        setMembers(JSON.parse(savedMembers))
-      } catch (error) {
-        console.error('Failed to parse members from localStorage', error)
+      if (savedMembers) {
+        try {
+          setMembers(JSON.parse(savedMembers))
+        } catch (error) {
+          console.error('Failed to parse members from localStorage', error)
+        }
+      }
+
+      if (savedExpenses) {
+        try {
+          setExpenses(JSON.parse(savedExpenses))
+        } catch (error) {
+          console.error('Failed to parse expenses from localStorage', error)
+        }
       }
     }
+  }, [currentChannel])
 
-    if (savedExpenses) {
-      try {
-        setExpenses(JSON.parse(savedExpenses))
-      } catch (error) {
-        console.error('Failed to parse expenses from localStorage', error)
-      }
+  // 儲存資料到 localStorage（向下相容，後續階段會改用 API）
+  useEffect(() => {
+    if (!currentChannel) {
+      localStorage.setItem('splitBillMembers', JSON.stringify(members))
     }
-  }, [])
-
-  // 儲存資料到 localStorage
-  useEffect(() => {
-    localStorage.setItem('splitBillMembers', JSON.stringify(members))
-  }, [members])
+  }, [members, currentChannel])
 
   useEffect(() => {
-    localStorage.setItem('splitBillExpenses', JSON.stringify(expenses))
-  }, [expenses])
+    if (!currentChannel) {
+      localStorage.setItem('splitBillExpenses', JSON.stringify(expenses))
+    }
+  }, [expenses, currentChannel])
 
   const handleAddExpense = (expense: Expense) => {
     setExpenses([...expenses, expense])
@@ -92,25 +110,69 @@ function App() {
     setActiveTab('records')
   }
 
-  const handleLogin = () => {
-    setIsAuthenticated(true)
+  // 加入頻道成功
+  const handleChannelJoined = (channel: Channel) => {
+    setCurrentChannel(channel)
+    // 從頻道資料載入成員和支出
+    setMembers(channel.members)
+    setExpenses(channel.expenses)
   }
 
-  // 如果未認證，顯示登入頁面
-  if (!isAuthenticated) {
-    return <Login onLogin={handleLogin} />
+  // 登出
+  const handleLogout = () => {
+    setCurrentChannel(null)
+    setMembers([])
+    setExpenses([])
+  }
+
+  // 頻道被刪除
+  const handleChannelDeleted = () => {
+    setCurrentChannel(null)
+    setMembers([])
+    setExpenses([])
+  }
+
+  // 重新載入頻道資料
+  const refreshChannel = async () => {
+    if (!currentChannel) return
+
+    try {
+      const response = await getChannel(currentChannel.accessKey)
+      if (response.success && response.channel) {
+        setCurrentChannel(response.channel)
+        setMembers(response.channel.members)
+        setExpenses(response.channel.expenses)
+      }
+    } catch (error) {
+      console.error('Failed to refresh channel:', error)
+    }
+  }
+
+  // Loading 狀態
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-xl text-gray-600">載入中...</div>
+        </div>
+      </div>
+    )
+  }
+
+  // 如果沒有頻道，顯示 ChannelGate
+  if (!currentChannel) {
+    return <ChannelGate onChannelJoined={handleChannelJoined} />
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 py-8 px-4">
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-2">
-            簡易分帳系統
-          </h1>
-          <p className="text-gray-600">輕鬆管理分帳，清楚明白每筆開銷</p>
-        </div>
+        {/* Channel Header */}
+        <ChannelHeader
+          channel={currentChannel}
+          onLogout={handleLogout}
+          onChannelDeleted={handleChannelDeleted}
+        />
 
         {/* Main Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -134,7 +196,11 @@ function App() {
           </TabsList>
 
           <TabsContent value="members">
-            <MemberManagement members={members} setMembers={setMembers} />
+            <MemberManagement
+              accessKey={currentChannel.accessKey}
+              members={members}
+              onMembersUpdated={refreshChannel}
+            />
           </TabsContent>
 
           <TabsContent value="add">
@@ -161,7 +227,7 @@ function App() {
 
         {/* Footer */}
         <div className="text-center mt-8 text-sm text-gray-500">
-          <p>資料會自動儲存在瀏覽器本地</p>
+          <p>頻道資料會自動同步到雲端</p>
         </div>
       </div>
     </div>

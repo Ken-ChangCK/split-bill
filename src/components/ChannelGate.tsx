@@ -56,7 +56,7 @@ function ChannelGate({ onChannelJoined }: ChannelGateProps) {
   const handleCopyKey = async () => {
     if (createdChannel) {
       const formattedKey = createdChannel.accessKey.match(/.{1,4}/g)?.join(' ') || createdChannel.accessKey
-      await navigator.clipboard.writeText(createdChannel.accessKey)
+      await navigator.clipboard.writeText(formattedKey)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     }
