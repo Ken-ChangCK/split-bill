@@ -13,6 +13,9 @@ interface ChannelGateProps {
 }
 
 function ChannelGate({ onChannelJoined }: ChannelGateProps) {
+  // Tab 狀態
+  const [activeTab, setActiveTab] = useState<'create' | 'join'>('create')
+
   // 建立頻道狀態
   const [channelName, setChannelName] = useState('')
   const [createdChannel, setCreatedChannel] = useState<Channel | null>(null)
@@ -113,7 +116,8 @@ function ChannelGate({ onChannelJoined }: ChannelGateProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs value={createdChannel ? 'created' : 'create'} onValueChange={() => {
+          <Tabs value={activeTab} onValueChange={(value) => {
+            setActiveTab(value as 'create' | 'join')
             setCreatedChannel(null)
             setCreateError('')
             setJoinError('')
@@ -194,48 +198,6 @@ function ChannelGate({ onChannelJoined }: ChannelGateProps) {
                   </Button>
                 </div>
               )}
-            </TabsContent>
-
-            {/* 建立成功後的特殊狀態 */}
-            <TabsContent value="created" className="space-y-4">
-              <div className="space-y-4">
-                <Alert>
-                  <AlertDescription>
-                    頻道建立成功！請記下以下金鑰，其他人可以使用此金鑰加入頻道。
-                  </AlertDescription>
-                </Alert>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">頻道名稱</label>
-                  <div className="p-3 bg-muted rounded-md">
-                    {createdChannel?.name}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">頻道金鑰</label>
-                  <div className="flex gap-2">
-                    <div className="flex-1 p-3 bg-muted rounded-md font-mono text-lg tracking-wider">
-                      {createdChannel?.accessKey.match(/.{1,4}/g)?.join(' ')}
-                    </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      onClick={handleCopyKey}
-                    >
-                      {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                    </Button>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    請妥善保存此金鑰，遺失後將無法找回
-                  </p>
-                </div>
-
-                <Button onClick={handleEnterChannel} className="w-full">
-                  進入頻道
-                </Button>
-              </div>
             </TabsContent>
 
             {/* 加入頻道 Tab */}
