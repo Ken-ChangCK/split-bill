@@ -76,7 +76,7 @@ export default function MemberManagement({ accessKey, members, onMembersUpdated 
       handleAddMember()
     }
   }
-
+  
   return (
     <Card>
       <CardHeader>
@@ -112,13 +112,13 @@ export default function MemberManagement({ accessKey, members, onMembersUpdated 
           </Alert>
         )}
 
-        {members.length === 0 ? (
+        {members && members.length === 0 ? (
           <Alert>
             <AlertDescription>尚未新增任何成員</AlertDescription>
           </Alert>
         ) : (
           <div className="flex flex-wrap gap-2">
-            {members.map((member) => (
+            {members && members.map((member) => (
               <Badge
                 key={member}
                 variant="secondary"
@@ -138,7 +138,7 @@ export default function MemberManagement({ accessKey, members, onMembersUpdated 
         )}
 
         <div className="text-sm text-muted-foreground">
-          目前共 {members.length} 位成員
+          目前共 {members?.length ?? 0} 位成員
         </div>
       </CardContent>
     </Card>
