@@ -91,16 +91,17 @@ export default function MemberManagement({ accessKey, members, onMembersUpdated 
             onChange={(e) => setNewMember(e.target.value)}
             onKeyPress={handleKeyPress}
             disabled={isLoading}
+            className="transition-all focus:scale-[1.02] focus:shadow-md"
           />
           <Button
             onClick={handleAddMember}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 transition-all hover:scale-105 active:scale-95 hover:shadow-md"
             disabled={isLoading}
           >
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
-              <UserPlus className="h-4 w-4" />
+              <UserPlus className="h-4 w-4 transition-transform group-hover:scale-110" />
             )}
             新增
           </Button>
@@ -113,21 +114,22 @@ export default function MemberManagement({ accessKey, members, onMembersUpdated 
         )}
 
         {members && members?.length === 0 ? (
-          <Alert>
+          <Alert className="animate-in fade-in-50 slide-in-from-top-2 duration-300">
             <AlertDescription>尚未新增任何成員</AlertDescription>
           </Alert>
         ) : (
           <div className="flex flex-wrap gap-2">
-            {members && members?.map((member) => (
+            {members && members?.map((member, index) => (
               <Badge
                 key={member}
                 variant="secondary"
-                className="text-base py-2 px-3 flex items-center gap-2"
+                className="text-base py-2 px-3 flex items-center gap-2 transition-all hover:scale-105 hover:shadow-md animate-in fade-in-50 slide-in-from-left-5 duration-300"
+                style={{ animationDelay: `${index * 50}ms` }}
               >
                 {member}
                 <button
                   onClick={() => handleRemoveMember(member)}
-                  className="ml-1 hover:text-destructive transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="ml-1 hover:text-destructive transition-all hover:scale-110 hover:rotate-90 disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={isLoading}
                 >
                   <X className="h-4 w-4" />

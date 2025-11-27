@@ -134,13 +134,17 @@ export default function ExpenseList({ accessKey, expenses, members, onExpensesUp
       </CardHeader>
       <CardContent>
         {expenses?.length === 0 ? (
-          <Alert>
+          <Alert className="animate-in fade-in-50 slide-in-from-top-2 duration-300">
             <AlertDescription>尚無支出記錄</AlertDescription>
           </Alert>
         ) : (
           <div className="space-y-3">
-            {expenses?.map((expense) => (
-              <Card key={expense.id} className="bg-muted/50">
+            {expenses?.map((expense, index) => (
+              <Card
+                key={expense.id}
+                className="bg-muted/50 transition-all hover:shadow-lg hover:scale-[1.02] animate-in fade-in-50 slide-in-from-bottom-5 duration-300"
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
                 <CardContent className="pt-6">
                   {editingId === expense.id && editForm ? (
                     // 編輯模式
@@ -215,23 +219,23 @@ export default function ExpenseList({ accessKey, expenses, members, onExpensesUp
                       <div className="flex gap-2">
                         <Button
                           onClick={handleSaveEdit}
-                          className="flex-1 flex items-center justify-center gap-2"
+                          className="flex-1 flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 hover:shadow-md"
                           disabled={isLoading}
                         >
                           {isLoading ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
                           ) : (
-                            <Save className="h-4 w-4" />
+                            <Save className="h-4 w-4 transition-transform group-hover:scale-110" />
                           )}
                           {isLoading ? '儲存中...' : '儲存'}
                         </Button>
                         <Button
                           onClick={handleCancelEdit}
                           variant="outline"
-                          className="flex-1 flex items-center justify-center gap-2"
+                          className="flex-1 flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95"
                           disabled={isLoading}
                         >
-                          <X className="h-4 w-4" />
+                          <X className="h-4 w-4 transition-transform group-hover:rotate-90" />
                           取消
                         </Button>
                       </div>
@@ -274,19 +278,21 @@ export default function ExpenseList({ accessKey, expenses, members, onExpensesUp
                           size="icon"
                           onClick={() => handleEdit(expense)}
                           disabled={isLoading}
+                          className="transition-all hover:scale-110 active:scale-95"
                         >
-                          <Edit2 className="h-4 w-4" />
+                          <Edit2 className="h-4 w-4 transition-transform hover:rotate-12" />
                         </Button>
                         <Button
                           variant="destructive"
                           size="icon"
                           onClick={() => handleDelete(expense)}
                           disabled={isLoading}
+                          className="transition-all hover:scale-110 active:scale-95"
                         >
                           {isLoading ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
                           ) : (
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-4 w-4 transition-transform hover:rotate-12" />
                           )}
                         </Button>
                       </div>

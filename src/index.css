@@ -67,3 +67,117 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* 自定義動畫 */
+@layer utilities {
+  /* 平滑過渡 */
+  .transition-smooth {
+    @apply transition-all duration-300 ease-in-out;
+  }
+
+  /* 彈跳效果 */
+  @keyframes bounce-in {
+    0% {
+      transform: scale(0.8);
+      opacity: 0;
+    }
+    50% {
+      transform: scale(1.05);
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  .animate-bounce-in {
+    animation: bounce-in 0.4s ease-out;
+  }
+
+  /* 滑入效果 */
+  @keyframes slide-in-up {
+    from {
+      transform: translateY(20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .animate-slide-in-up {
+    animation: slide-in-up 0.3s ease-out;
+  }
+
+  /* 淡入效果 */
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.3s ease-in;
+  }
+
+  /* 脈動效果（更柔和） */
+  @keyframes pulse-soft {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.05);
+    }
+  }
+
+  .animate-pulse-soft {
+    animation: pulse-soft 2s ease-in-out infinite;
+  }
+
+  /* 搖晃效果 */
+  @keyframes shake {
+    0%, 100% {
+      transform: translateX(0);
+    }
+    10%, 30%, 50%, 70%, 90% {
+      transform: translateX(-5px);
+    }
+    20%, 40%, 60%, 80% {
+      transform: translateX(5px);
+    }
+  }
+
+  .animate-shake {
+    animation: shake 0.5s ease-in-out;
+  }
+
+  /* 旋轉進入 */
+  @keyframes rotate-in {
+    from {
+      transform: rotate(-180deg) scale(0);
+      opacity: 0;
+    }
+    to {
+      transform: rotate(0) scale(1);
+      opacity: 1;
+    }
+  }
+
+  .animate-rotate-in {
+    animation: rotate-in 0.4s ease-out;
+  }
+}
+
+/* 按鈕 hover 效果 */
+button:not(:disabled) {
+  @apply cursor-pointer;
+}
+
+/* 平滑捲動 */
+* {
+  scroll-behavior: smooth;
+}

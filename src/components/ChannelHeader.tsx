@@ -136,8 +136,11 @@ function ChannelHeader({ channel, onLogout, onChannelDeleted }: ChannelHeaderPro
               size="icon"
               onClick={() => setShowKey(!showKey)}
               title={showKey ? '隱藏金鑰' : '顯示金鑰'}
+              className="transition-all hover:scale-110 active:scale-95"
             >
-              {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              <div className="transition-transform duration-200">
+                {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </div>
             </Button>
 
             {/* 複製按鈕 */}
@@ -147,8 +150,11 @@ function ChannelHeader({ channel, onLogout, onChannelDeleted }: ChannelHeaderPro
               size="icon"
               onClick={handleCopyKey}
               title="複製金鑰"
+              className="transition-all hover:scale-110 active:scale-95"
             >
-              {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              <div className={`transition-all duration-300 ${copied ? 'scale-110 rotate-12' : 'scale-100 rotate-0'}`}>
+                {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+              </div>
             </Button>
 
             {/* 分享按鈕 */}
@@ -158,9 +164,9 @@ function ChannelHeader({ channel, onLogout, onChannelDeleted }: ChannelHeaderPro
               size="icon"
               onClick={() => setShowShareDialog(true)}
               title="分享頻道"
-              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 transition-all hover:scale-110 active:scale-95 hover:shadow-lg"
             >
-              <Share2 className="h-4 w-4" />
+              <Share2 className="h-4 w-4 transition-transform group-hover:rotate-12" />
             </Button>
           </div>
 
@@ -170,18 +176,18 @@ function ChannelHeader({ channel, onLogout, onChannelDeleted }: ChannelHeaderPro
               variant="outline"
               size="sm"
               onClick={handleLogout}
-              className="flex-1"
+              className="flex-1 transition-all hover:scale-105 active:scale-95 hover:shadow-md"
             >
-              <LogOut className="h-4 w-4 mr-2" />
+              <LogOut className="h-4 w-4 mr-2 transition-transform group-hover:-rotate-12" />
               登出
             </Button>
             <Button
               variant="destructive"
               size="sm"
               onClick={() => setShowDeleteDialog(true)}
-              className="flex-1"
+              className="flex-1 transition-all hover:scale-105 active:scale-95 hover:shadow-md"
             >
-              <Trash2 className="h-4 w-4 mr-2" />
+              <Trash2 className="h-4 w-4 mr-2 transition-transform group-hover:rotate-12" />
               刪除頻道
             </Button>
           </div>
