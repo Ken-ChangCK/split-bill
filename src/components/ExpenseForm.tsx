@@ -102,7 +102,7 @@ export default function ExpenseForm({ accessKey, members, onExpenseAdded, onSwit
     setError('')
   }
 
-  if (members.length === 0) {
+  if (members?.length === 0) {
     return (
       <Card>
         <CardHeader>
