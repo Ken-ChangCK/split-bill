@@ -9,14 +9,6 @@ import ReceiptUpload from '@/components/ReceiptUpload'
 import { ReceiptData } from '@/services/geminiService'
 import { addExpense } from '@/api/expenses'
 
-interface Expense {
-  id: number
-  itemName: string
-  amount: number
-  payer: string
-  participants: string[]
-}
-
 interface ExpenseFormProps {
   accessKey: string
   members: string[]
