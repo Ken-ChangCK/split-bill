@@ -83,7 +83,7 @@ export default function ExpenseList({ accessKey, expenses, members, onExpensesUp
       return
     }
 
-    if (editForm.participants.length === 0) {
+    if (editForm.participants?.length === 0) {
       setError('請至少選擇一位參與者')
       return
     }
@@ -129,17 +129,17 @@ export default function ExpenseList({ accessKey, expenses, members, onExpensesUp
       <CardHeader>
         <CardTitle>支出記錄</CardTitle>
         <CardDescription>
-          共 {expenses.length} 筆支出，總金額 ${Math.round(totalAmount)}
+          共 {expenses?.length ?? 0} 筆支出，總金額 ${Math.round(totalAmount)}
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {expenses.length === 0 ? (
+        {expenses?.length === 0 ? (
           <Alert>
             <AlertDescription>尚無支出記錄</AlertDescription>
           </Alert>
         ) : (
           <div className="space-y-3">
-            {expenses.map((expense) => (
+            {expenses?.map((expense) => (
               <Card key={expense.id} className="bg-muted/50">
                 <CardContent className="pt-6">
                   {editingId === expense.id && editForm ? (
@@ -199,9 +199,9 @@ export default function ExpenseList({ accessKey, expenses, members, onExpensesUp
                             </option>
                           ))}
                         </Select>
-                        {editForm.participants.length > 0 && (
+                        {editForm.participants?.length > 0 && (
                           <div className="text-sm text-muted-foreground mt-2">
-                            已選擇 {editForm.participants.length} 位: {editForm.participants.join('、')}
+                            已選擇 {editForm.participants?.length ?? 0} 位: {editForm.participants?.join('、') ?? ''}
                           </div>
                         )}
                       </div>
@@ -264,7 +264,7 @@ export default function ExpenseList({ accessKey, expenses, members, onExpensesUp
                         </div>
 
                         <div className="text-xs text-muted-foreground">
-                          每人應付: ${Math.round(expense.amount / expense.participants.length)}
+                          每人應付: ${Math.round(expense.amount / expense.participants?.length)}
                         </div>
                       </div>
 
