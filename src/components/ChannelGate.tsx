@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { createChannel, joinChannel } from '@/api/channel'
 import { Channel } from '@/types/channel'
 import { Check, Copy } from 'lucide-react'
+import InteractiveBackground from './InteractiveBackground'
 
 interface ChannelGateProps {
   onChannelJoined: (channel: Channel) => void
@@ -105,13 +106,14 @@ function ChannelGate({ onChannelJoined }: ChannelGateProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 flex items-center justify-center px-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-950 flex items-center justify-center px-4 relative">
+      <InteractiveBackground />
+      <Card className="w-full max-w-md relative z-10 bg-slate-800/90 border-slate-700 backdrop-blur-sm">
         <CardHeader>
-          <CardTitle className="text-2xl text-center bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+          <CardTitle className="text-2xl text-center bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
             簡易分帳系統
           </CardTitle>
-          <CardDescription className="text-center">
+          <CardDescription className="text-center text-gray-300">
             建立新頻道或加入現有頻道
           </CardDescription>
         </CardHeader>
@@ -134,7 +136,7 @@ function ChannelGate({ onChannelJoined }: ChannelGateProps) {
               {!createdChannel ? (
                 <form onSubmit={handleCreateChannel} className="space-y-4">
                   <div className="space-y-2">
-                    <label htmlFor="channelName" className="text-sm font-medium">
+                    <label htmlFor="channelName" className="text-sm font-medium text-gray-300">
                       頻道名稱
                     </label>
                     <Input

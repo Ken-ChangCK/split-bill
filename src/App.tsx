@@ -6,6 +6,7 @@ import ExpenseList from '@/components/ExpenseList'
 import SettlementResult from '@/components/SettlementResult'
 import ChannelGate from '@/components/ChannelGate'
 import ChannelHeader from '@/components/ChannelHeader'
+import InteractiveBackground from '@/components/InteractiveBackground'
 import { Channel } from '@/types/channel'
 import { getChannel, createChannel } from '@/api/channel'
 import { updateMembers } from '@/api/members'
@@ -205,9 +206,10 @@ function App() {
   // Loading 狀態
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-xl text-gray-600">載入中...</div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-950 flex items-center justify-center relative">
+        <InteractiveBackground />
+        <div className="text-center relative z-10">
+          <div className="text-xl text-gray-300">載入中...</div>
         </div>
       </div>
     )
@@ -216,8 +218,9 @@ function App() {
   // 顯示遷移對話框
   if (showMigrationDialog && migrationData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 flex items-center justify-center p-4">
-        <Card className="max-w-2xl w-full">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-950 flex items-center justify-center p-4 relative">
+        <InteractiveBackground />
+        <Card className="max-w-2xl w-full relative z-10 bg-slate-800 border-slate-700 text-white">
           <CardHeader>
             <CardTitle>偵測到舊資料</CardTitle>
             <CardDescription>
@@ -290,8 +293,11 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 py-8 px-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-950 py-8 px-4 relative">
+      {/* 互動背景特效 */}
+      <InteractiveBackground />
+
+      <div className="max-w-4xl mx-auto relative z-10">
         {/* Channel Header */}
         <ChannelHeader
           channel={currentChannel}
@@ -352,7 +358,7 @@ function App() {
         </Tabs>
 
         {/* Footer */}
-        <div className="text-center mt-8 text-sm text-gray-500">
+        <div className="text-center mt-8 text-sm text-gray-400">
           <p>頻道資料會自動同步到雲端</p>
         </div>
       </div>
