@@ -38,7 +38,7 @@ function ChannelHeader({ channel, onLogout, onChannelDeleted }: ChannelHeaderPro
 3. 輸入金鑰
 4. 開始使用
 
-系統連結：${window.location.origin}`
+系統連結：${window.location.origin}/split-bill`
 
   // 生成各平台分享 URL
   const getShareUrl = (platform: string) => {
