@@ -112,13 +112,13 @@ export default function MemberManagement({ accessKey, members, onMembersUpdated 
           </Alert>
         )}
 
-        {members && members.length === 0 ? (
+        {members && members?.length === 0 ? (
           <Alert>
             <AlertDescription>尚未新增任何成員</AlertDescription>
           </Alert>
         ) : (
           <div className="flex flex-wrap gap-2">
-            {members && members.map((member) => (
+            {members && members?.map((member) => (
               <Badge
                 key={member}
                 variant="secondary"
