@@ -122,7 +122,7 @@ export default function ExpenseList({ accessKey, expenses, members, onExpensesUp
     setEditForm({ ...editForm, participants: selectedOptions })
   }
 
-  const totalAmount = expenses.reduce((sum, expense) => sum + expense.amount, 0)
+  const totalAmount = expenses?.reduce((sum, expense) => sum + expense.amount, 0)
 
   return (
     <Card>
