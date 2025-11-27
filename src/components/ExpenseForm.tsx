@@ -162,7 +162,7 @@ export default function ExpenseForm({ accessKey, members, onExpenseAdded, onSwit
           <label className="text-sm font-medium mb-2 block">付款人</label>
           <Select value={payer} onChange={(e) => setPayer(e.target.value)} disabled={isLoading}>
             <option value="">請選擇付款人</option>
-            {members.map((member) => (
+            {members?.map((member) => (
               <option key={member} value={member}>
                 {member}
               </option>
@@ -181,7 +181,7 @@ export default function ExpenseForm({ accessKey, members, onExpenseAdded, onSwit
             className="min-h-[120px]"
             disabled={isLoading}
           >
-            {members.map((member) => (
+            {members?.map((member) => (
               <option key={member} value={member}>
                 {member}
               </option>

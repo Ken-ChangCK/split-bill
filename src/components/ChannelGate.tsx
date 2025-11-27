@@ -169,14 +169,14 @@ function ChannelGate({ onChannelJoined }: ChannelGateProps) {
                   </Alert>
 
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">頻道名稱</label>
+                    <label className="text-sm font-medium text-gray-300">頻道名稱</label>
                     <div className="p-3 bg-muted rounded-md">
                       {createdChannel.name}
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">頻道金鑰</label>
+                    <label className="text-sm font-medium text-gray-300">頻道金鑰</label>
                     <div className="flex gap-2">
                       <div className="flex-1 p-3 bg-muted rounded-md font-mono text-lg tracking-wider">
                         {createdChannel.accessKey.match(/.{1,4}/g)?.join(' ')}
@@ -206,7 +206,7 @@ function ChannelGate({ onChannelJoined }: ChannelGateProps) {
             <TabsContent value="join" className="space-y-4">
               <form onSubmit={handleJoinChannel} className="space-y-4">
                 <div className="space-y-2">
-                  <label htmlFor="accessKey" className="text-sm font-medium">
+                  <label htmlFor="accessKey" className="text-sm font-medium text-gray-300">
                     頻道金鑰
                   </label>
                   <Input

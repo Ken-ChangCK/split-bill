@@ -178,7 +178,7 @@ export default function ExpenseList({ accessKey, expenses, members, onExpensesUp
                           disabled={isLoading}
                         >
                           <option value="">請選擇付款人</option>
-                          {members.map((member) => (
+                          {members?.map((member) => (
                             <option key={member} value={member}>
                               {member}
                             </option>
@@ -197,7 +197,7 @@ export default function ExpenseList({ accessKey, expenses, members, onExpensesUp
                           className="min-h-[120px]"
                           disabled={isLoading}
                         >
-                          {members.map((member) => (
+                          {members?.map((member) => (
                             <option key={member} value={member}>
                               {member}
                             </option>
