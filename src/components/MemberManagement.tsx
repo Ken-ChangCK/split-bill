@@ -24,7 +24,7 @@ export default function MemberManagement({ accessKey, members, onMembersUpdated 
       return
     }
 
-    if (members.includes(newMember.trim())) {
+    if (members?.includes(newMember.trim())) {
       setError('成員名稱已存在')
       return
     }

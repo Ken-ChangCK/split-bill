@@ -94,7 +94,7 @@ export default function SettlementResult({ members, expenses }: SettlementResult
     setCalculated(true)
   }
 
-  if (expenses.length === 0) {
+  if (expenses?.length === 0) {
     return (
       <Card>
         <CardHeader>
