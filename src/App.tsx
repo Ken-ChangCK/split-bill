@@ -7,7 +7,7 @@ import SettlementResult from '@/components/SettlementResult'
 import ChannelGate from '@/components/ChannelGate'
 import ChannelHeader from '@/components/ChannelHeader'
 import InteractiveBackground from '@/components/InteractiveBackground'
-import { Channel } from '@/types/channel'
+import { Channel, Expense } from '@/types/channel'
 import { getChannel, createChannel } from '@/api/channel'
 import { updateMembers } from '@/api/members'
 import { addExpense } from '@/api/expenses'
@@ -15,14 +15,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-
-interface Expense {
-  id: number
-  itemName: string
-  amount: number
-  payer: string
-  participants: string[]
-}
 
 function App() {
   const [currentChannel, setCurrentChannel] = useState<Channel | null>(null)

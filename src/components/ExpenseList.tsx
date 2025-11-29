@@ -7,14 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Trash2, Edit2, Save, X, Loader2 } from 'lucide-react'
 import { removeExpense, updateExpense } from '@/api/expenses'
-
-interface Expense {
-  id: number
-  itemName: string
-  amount: number
-  payer: string
-  participants: string[]
-}
+import { Expense } from '@/types/channel'
 
 interface ExpenseListProps {
   accessKey: string
@@ -203,7 +196,7 @@ export default function ExpenseList({ accessKey, expenses, members, onExpensesUp
                             </option>
                           ))}
                         </Select>
-                        {editForm.participants?.length > 0 && (
+                        {editForm.participants && editForm?.participants?.length > 0 && (
                           <div className="text-sm text-muted-foreground mt-2">
                             已選擇 {editForm.participants?.length ?? 0} 位: {editForm.participants?.join('、') ?? ''}
                           </div>
@@ -259,7 +252,7 @@ export default function ExpenseList({ accessKey, expenses, members, onExpensesUp
                         <div className="flex items-center gap-2 text-sm">
                           <span className="text-muted-foreground">參與者:</span>
                           <div className="flex flex-wrap gap-1">
-                            {expense.participants.map((participant) => (
+                            {expense.participants?.map((participant) => (
                               <Badge key={participant} variant="secondary">
                                 {participant}
                               </Badge>
@@ -268,7 +261,7 @@ export default function ExpenseList({ accessKey, expenses, members, onExpensesUp
                         </div>
 
                         <div className="text-xs text-muted-foreground">
-                          每人應付: ${Math.round(expense.amount / expense.participants?.length)}
+                          每人應付: ${expense?.participants ? Math.round(expense?.amount / expense?.participants?.length) : 0}
                         </div>
                       </div>
 

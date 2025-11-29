@@ -1,5 +1,97 @@
 import mongoose from 'mongoose'
 
+// 品項子 Schema（明細模式使用）
+const expenseItemSchema = new mongoose.Schema({
+  id: {
+    type: String,
+    required: true
+  },
+  name: {
+    type: String,
+    required: true,
+    maxlength: 50
+  },
+  price: {
+    type: Number,
+    required: true,
+    min: 0
+  },
+  claimedBy: {
+    type: [String],
+    default: []
+  },
+  createdBy: String
+}, { _id: false })
+
+// 支出 Schema（擴充原有）
+const expenseSchema = new mongoose.Schema({
+  id: {
+    type: Number,
+    required: true
+  },
+  itemName: {
+    type: String,
+    required: true
+  },
+  amount: {
+    type: Number,
+    required: true
+  },
+  payer: {
+    type: String,
+    required: true
+  },
+
+  // 新增：模式標記
+  mode: {
+    type: String,
+    enum: ['split', 'itemized'],
+    default: 'split' // 預設平分模式（向後相容）
+  },
+
+  // 平分模式使用（保留原有）
+  participants: {
+    type: [String],
+    required: function() {
+      return this.mode === 'split' // 只在平分模式必填
+    },
+    default: undefined // 明細模式時不需要
+  },
+
+  // 明細模式使用（新增）
+  items: {
+    type: [expenseItemSchema],
+    default: undefined, // 平分模式時不需要
+    validate: {
+      validator: function(v) {
+        // 明細模式時，items 可以是空陣列（剛建立時）
+        return this.mode !== 'itemized' || Array.isArray(v)
+      },
+      message: 'Items must be an array for itemized mode'
+    }
+  },
+
+  remainderHandling: {
+    type: String,
+    enum: ['payer', 'split-all'],
+    default: 'payer'
+  },
+
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+}, { _id: false })
+
+// 支出 Schema 的 virtual 方法
+expenseSchema.virtual('isSplitMode').get(function() {
+  return this.mode === 'split'
+})
+
+expenseSchema.virtual('isItemizedMode').get(function() {
+  return this.mode === 'itemized'
+})
+
 const channelSchema = new mongoose.Schema({
   // 頻道名稱
   name: {
@@ -21,34 +113,9 @@ const channelSchema = new mongoose.Schema({
     type: [String],
     default: []
   },
-  // 支出記錄陣列
+  // 支出記錄陣列（使用更新後的 expenseSchema）
   expenses: {
-    type: [{
-      id: {
-        type: Number,
-        required: true
-      },
-      itemName: {
-        type: String,
-        required: true
-      },
-      amount: {
-        type: Number,
-        required: true
-      },
-      payer: {
-        type: String,
-        required: true
-      },
-      participants: {
-        type: [String],
-        required: true
-      },
-      createdAt: {
-        type: Date,
-        default: Date.now
-      }
-    }],
+    type: [expenseSchema],
     default: []
   },
   // 建立時間

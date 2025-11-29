@@ -4,14 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Calculator } from 'lucide-react'
-
-interface Expense {
-  id: number
-  itemName: string
-  amount: number
-  payer: string
-  participants: string[]
-}
+import { Expense } from '@/types/channel'
 
 interface SettlementResultProps {
   members: string[]
@@ -44,6 +37,10 @@ export default function SettlementResult({ members, expenses }: SettlementResult
     // 計算每個人的淨額
     expenses.forEach(expense => {
       const { payer, amount, participants } = expense
+
+      // 只處理平分模式的支出（有 participants 的）
+      if (!participants || participants?.length === 0) return
+
       const sharePerPerson = amount / participants.length
 
       // 付款人實際支付了全額
