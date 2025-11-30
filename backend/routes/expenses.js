@@ -20,7 +20,7 @@ const expenseLimiter = rateLimit({
 router.post('/:accessKey/expenses', expenseLimiter, async (req, res) => {
   try {
     const { accessKey } = req.params
-    const { itemName, amount, payer, participants } = req.body
+    const { itemName, amount, payer, participants, mode, remainderHandling } = req.body
 
     // 驗證必要欄位
     if (!itemName || typeof itemName !== 'string' || itemName.trim() === '') {
@@ -44,11 +44,23 @@ router.post('/:accessKey/expenses', expenseLimiter, async (req, res) => {
       })
     }
 
-    if (!Array.isArray(participants) || participants.length === 0) {
+    // 驗證模式
+    const expenseMode = mode || 'split'
+    if (!['split', 'itemized'].includes(expenseMode)) {
       return res.status(400).json({
         success: false,
-        message: '參與者列表不能為空'
+        message: '模式必須是 split 或 itemized'
       })
+    }
+
+    // 平分模式需要參與者
+    if (expenseMode === 'split') {
+      if (!Array.isArray(participants) || participants.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: '平分模式下參與者列表不能為空'
+        })
+      }
     }
 
     // 查找頻道
@@ -68,23 +80,39 @@ router.post('/:accessKey/expenses', expenseLimiter, async (req, res) => {
       })
     }
 
-    // 驗證所有參與者是否為頻道成員
-    for (const participant of participants) {
-      if (!channel.members.includes(participant)) {
-        return res.status(400).json({
-          success: false,
-          message: `參與者「${participant}」不是頻道成員`
-        })
+    // 驗證所有參與者是否為頻道成員（平分模式）
+    if (expenseMode === 'split') {
+      for (const participant of participants) {
+        if (!channel.members.includes(participant)) {
+          return res.status(400).json({
+            success: false,
+            message: `參與者「${participant}」不是頻道成員`
+          })
+        }
       }
     }
 
-    // 新增支出
-    const newExpense = await channel.addExpense({
+    // 準備支出資料
+    const expenseData = {
       itemName: itemName.trim(),
       amount,
       payer: payer.trim(),
-      participants
-    })
+      mode: expenseMode
+    }
+
+    // 平分模式
+    if (expenseMode === 'split') {
+      expenseData.participants = participants
+    }
+
+    // 明細模式
+    if (expenseMode === 'itemized') {
+      expenseData.items = []
+      expenseData.remainderHandling = remainderHandling || 'payer'
+    }
+
+    // 新增支出
+    const newExpense = await channel.addExpense(expenseData)
 
     res.status(201).json({
       success: true,

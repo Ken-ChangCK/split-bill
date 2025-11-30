@@ -228,6 +228,126 @@ channelSchema.methods.updateExpense = async function(id, data) {
   return null
 }
 
+// ============================================
+// 明細模式相關方法
+// ============================================
+
+// 實例方法：新增品項
+channelSchema.methods.addItem = async function(expenseId, item) {
+  const expense = this.expenses.find(e => e.id === parseInt(expenseId))
+  if (!expense || expense.mode !== 'itemized') {
+    throw new Error('Expense not found or not in itemized mode')
+  }
+
+  // 生成品項 ID
+  const maxId = expense.items && expense.items.length > 0
+    ? Math.max(...expense.items.map(i => parseInt(i.id)))
+    : 0
+
+  const newItem = {
+    ...item,
+    id: String(maxId + 1),
+    claimedBy: item.claimedBy || []
+  }
+
+  if (!expense.items) {
+    expense.items = []
+  }
+
+  expense.items.push(newItem)
+  await this.updateActivity()
+  return newItem
+}
+
+// 實例方法：更新品項
+channelSchema.methods.updateItem = async function(expenseId, itemId, data) {
+  const expense = this.expenses.find(e => e.id === parseInt(expenseId))
+  if (!expense || expense.mode !== 'itemized') {
+    throw new Error('Expense not found or not in itemized mode')
+  }
+
+  const item = expense.items.find(i => i.id === itemId)
+  if (!item) {
+    throw new Error('Item not found')
+  }
+
+  if (data.name !== undefined) item.name = data.name
+  if (data.price !== undefined) item.price = data.price
+
+  await this.updateActivity()
+  return item
+}
+
+// 實例方法：刪除品項
+channelSchema.methods.removeItem = async function(expenseId, itemId) {
+  const expense = this.expenses.find(e => e.id === parseInt(expenseId))
+  if (!expense || expense.mode !== 'itemized') {
+    throw new Error('Expense not found or not in itemized mode')
+  }
+
+  const index = expense.items.findIndex(i => i.id === itemId)
+  if (index > -1) {
+    expense.items.splice(index, 1)
+    await this.updateActivity()
+    return true
+  }
+  return false
+}
+
+// 實例方法：認領品項
+channelSchema.methods.claimItem = async function(expenseId, itemId, userName) {
+  const expense = this.expenses.find(e => e.id === parseInt(expenseId))
+  if (!expense || expense.mode !== 'itemized') {
+    throw new Error('Expense not found or not in itemized mode')
+  }
+
+  const item = expense.items.find(i => i.id === itemId)
+  if (!item) {
+    throw new Error('Item not found')
+  }
+
+  // 檢查是否已認領
+  if (!item.claimedBy.includes(userName)) {
+    item.claimedBy.push(userName)
+    await this.updateActivity()
+  }
+
+  return item
+}
+
+// 實例方法：取消認領品項
+channelSchema.methods.unclaimItem = async function(expenseId, itemId, userName) {
+  const expense = this.expenses.find(e => e.id === parseInt(expenseId))
+  if (!expense || expense.mode !== 'itemized') {
+    throw new Error('Expense not found or not in itemized mode')
+  }
+
+  const item = expense.items.find(i => i.id === itemId)
+  if (!item) {
+    throw new Error('Item not found')
+  }
+
+  const index = item.claimedBy.indexOf(userName)
+  if (index > -1) {
+    item.claimedBy.splice(index, 1)
+    await this.updateActivity()
+  }
+
+  return item
+}
+
+// 實例方法：更新剩餘金額處理方式
+channelSchema.methods.updateRemainderHandling = async function(expenseId, handling) {
+  const expense = this.expenses.find(e => e.id === parseInt(expenseId))
+  if (!expense || expense.mode !== 'itemized') {
+    throw new Error('Expense not found or not in itemized mode')
+  }
+
+  expense.remainderHandling = handling
+  await this.updateActivity()
+  return expense
+}
+
 const Channel = mongoose.model('Channel', channelSchema)
 
 export default Channel
