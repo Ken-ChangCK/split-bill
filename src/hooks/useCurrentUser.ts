@@ -31,6 +31,31 @@ export function useCurrentUser(channelId: string) {
     setCurrentUserState(user);
   }, [channelId, getStoredUser]);
 
+  // 監聽 localStorage 變更（用於跨組件同步）
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === storageKey) {
+        setCurrentUserState(e.newValue);
+      }
+    };
+
+    // 自定義事件監聽（用於同一頁面內的更新）
+    const handleCustomStorageChange = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail?.key === storageKey) {
+        setCurrentUserState(customEvent.detail.value);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('localStorageChange', handleCustomStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('localStorageChange', handleCustomStorageChange);
+    };
+  }, [storageKey]);
+
   /**
    * 設定當前使用者
    * @param userName - 使用者名稱
@@ -39,6 +64,12 @@ export function useCurrentUser(channelId: string) {
     try {
       localStorage.setItem(storageKey, userName);
       setCurrentUserState(userName);
+
+      // 觸發自定義事件，通知其他使用相同 hook 的組件
+      const event = new CustomEvent('localStorageChange', {
+        detail: { key: storageKey, value: userName }
+      });
+      window.dispatchEvent(event);
     } catch (error) {
       console.error('Failed to save to localStorage:', error);
     }
@@ -51,6 +82,12 @@ export function useCurrentUser(channelId: string) {
     try {
       localStorage.removeItem(storageKey);
       setCurrentUserState(null);
+
+      // 觸發自定義事件，通知其他使用相同 hook 的組件
+      const event = new CustomEvent('localStorageChange', {
+        detail: { key: storageKey, value: null }
+      });
+      window.dispatchEvent(event);
     } catch (error) {
       console.error('Failed to remove from localStorage:', error);
     }

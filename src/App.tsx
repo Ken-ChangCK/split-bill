@@ -382,7 +382,13 @@ function App() {
             <ExpenseForm
               accessKey={currentChannel.accessKey}
               members={members}
-              onExpenseAdded={refreshChannel}
+              onExpenseAdded={(expenseId, mode) => {
+                refreshChannel()
+                // 如果是明細模式，導航到品項管理頁面
+                if (mode === 'itemized' && expenseId) {
+                  setViewingItemizedExpense(expenseId)
+                }
+              }}
               onSwitchToRecords={handleSwitchToRecords}
             />
           </TabsContent>
