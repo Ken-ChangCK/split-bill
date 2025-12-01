@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Trash2, Edit2, Save, X, Loader2 } from 'lucide-react'
+import { Trash2, Edit2, Save, X, Loader2, Eye } from 'lucide-react'
 import { removeExpense, updateExpense } from '@/api/expenses'
 import { Expense } from '@/types/channel'
 
@@ -14,9 +14,10 @@ interface ExpenseListProps {
   expenses: Expense[]
   members: string[]
   onExpensesUpdated: () => void
+  onViewItemizedExpense?: (expenseId: number) => void
 }
 
-export default function ExpenseList({ accessKey, expenses, members, onExpensesUpdated }: ExpenseListProps) {
+export default function ExpenseList({ accessKey, expenses, members, onExpensesUpdated, onViewItemizedExpense }: ExpenseListProps) {
   const [editingId, setEditingId] = useState<number | null>(null)
   const [editForm, setEditForm] = useState<Expense | null>(null)
   const [error, setError] = useState('')
@@ -242,6 +243,11 @@ export default function ExpenseList({ accessKey, expenses, members, onExpensesUp
                           <span className="text-2xl font-bold text-primary">
                             ${Math.round(expense.amount)}
                           </span>
+                          {expense.mode === 'itemized' && (
+                            <Badge variant="outline" className="ml-2">
+                              📋 明細模式
+                            </Badge>
+                          )}
                         </div>
 
                         <div className="flex items-center gap-2 text-sm">
@@ -249,32 +255,64 @@ export default function ExpenseList({ accessKey, expenses, members, onExpensesUp
                           <Badge variant="default">{expense.payer}</Badge>
                         </div>
 
-                        <div className="flex items-center gap-2 text-sm">
-                          <span className="text-muted-foreground">參與者:</span>
-                          <div className="flex flex-wrap gap-1">
-                            {expense.participants?.map((participant) => (
-                              <Badge key={participant} variant="secondary">
-                                {participant}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
+                        {expense.mode === 'itemized' ? (
+                          // 明細模式顯示
+                          <>
+                            <div className="flex items-center gap-2 text-sm">
+                              <span className="text-muted-foreground">品項數量:</span>
+                              <Badge variant="secondary">{expense.items?.length || 0} 個品項</Badge>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm">
+                              <span className="text-muted-foreground">參與人數:</span>
+                              <Badge variant="secondary">{expense.participants?.length || 0} 人</Badge>
+                            </div>
+                          </>
+                        ) : (
+                          // 平均分攤模式顯示
+                          <>
+                            <div className="flex items-center gap-2 text-sm">
+                              <span className="text-muted-foreground">參與者:</span>
+                              <div className="flex flex-wrap gap-1">
+                                {expense.participants?.map((participant) => (
+                                  <Badge key={participant} variant="secondary">
+                                    {participant}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
 
-                        <div className="text-xs text-muted-foreground">
-                          每人應付: ${expense?.participants ? Math.round(expense?.amount / expense?.participants?.length) : 0}
-                        </div>
+                            <div className="text-xs text-muted-foreground">
+                              每人應付: ${expense?.participants ? Math.round(expense?.amount / expense?.participants?.length) : 0}
+                            </div>
+                          </>
+                        )}
                       </div>
 
                       <div className="flex gap-2 ml-4">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => handleEdit(expense)}
-                          disabled={isLoading}
-                          className="transition-all hover:scale-110 active:scale-95"
-                        >
-                          <Edit2 className="h-4 w-4 transition-transform hover:rotate-12" />
-                        </Button>
+                        {expense.mode === 'itemized' ? (
+                          // 明細模式：顯示「查看明細」按鈕
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={() => onViewItemizedExpense?.(expense.id)}
+                            disabled={isLoading}
+                            className="gap-2 transition-all hover:scale-105 active:scale-95"
+                          >
+                            <Eye className="h-4 w-4" />
+                            查看明細
+                          </Button>
+                        ) : (
+                          // 平均分攤模式：顯示「編輯」按鈕
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => handleEdit(expense)}
+                            disabled={isLoading}
+                            className="transition-all hover:scale-110 active:scale-95"
+                          >
+                            <Edit2 className="h-4 w-4 transition-transform hover:rotate-12" />
+                          </Button>
+                        )}
                         <Button
                           variant="destructive"
                           size="icon"

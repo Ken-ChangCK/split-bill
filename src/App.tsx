@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Button } from '@/components/ui/button'
 import MemberManagement from '@/components/MemberManagement'
 import ExpenseForm from '@/components/ExpenseForm'
 import ExpenseList from '@/components/ExpenseList'
@@ -7,14 +8,15 @@ import SettlementResult from '@/components/SettlementResult'
 import ChannelGate from '@/components/ChannelGate'
 import ChannelHeader from '@/components/ChannelHeader'
 import InteractiveBackground from '@/components/InteractiveBackground'
+import { ItemizedExpenseManager } from '@/components/itemized/ItemizedExpenseManager'
 import { Channel, Expense } from '@/types/channel'
 import { getChannel, createChannel } from '@/api/channel'
 import { updateMembers } from '@/api/members'
 import { addExpense } from '@/api/expenses'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { ArrowLeft } from 'lucide-react'
 
 function App() {
   const [currentChannel, setCurrentChannel] = useState<Channel | null>(null)
@@ -27,6 +29,9 @@ function App() {
   const [migrationChannelName, setMigrationChannelName] = useState('我的分帳')
   const [isMigrating, setIsMigrating] = useState(false)
   const [migrationError, setMigrationError] = useState('')
+
+  // 明細模式頁面狀態
+  const [viewingItemizedExpense, setViewingItemizedExpense] = useState<number | null>(null)
 
   // 啟動時檢查 localStorage 中的頻道金鑰
   useEffect(() => {
@@ -284,6 +289,53 @@ function App() {
     return <ChannelGate onChannelJoined={handleChannelJoined} />
   }
 
+  // 如果正在查看明細模式支出
+  if (viewingItemizedExpense !== null) {
+    const expense = expenses.find(e => e.id === viewingItemizedExpense)
+
+    if (!expense || expense.mode !== 'itemized') {
+      // 如果找不到支出或不是明細模式，返回列表
+      setViewingItemizedExpense(null)
+      return null
+    }
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-950 py-8 px-4 relative">
+        <InteractiveBackground />
+
+        <div className="max-w-4xl mx-auto relative z-10">
+          {/* 返回按鈕 */}
+          <Button
+            onClick={() => setViewingItemizedExpense(null)}
+            variant="ghost"
+            className="mb-4 gap-2 text-white hover:text-white hover:bg-white/10"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            返回支出列表
+          </Button>
+
+          {/* 明細模式管理頁面 */}
+          <ItemizedExpenseManager
+            accessKey={currentChannel.accessKey}
+            expenseId={expense.id}
+            expenseName={expense.itemName}
+            totalAmount={expense.amount}
+            payer={expense.payer}
+            members={members}
+            items={expense.items || []}
+            remainderHandling={expense.remainderHandling || 'payer'}
+            createdAt={expense.createdAt}
+            onRefresh={refreshChannel}
+            onComplete={() => {
+              setViewingItemizedExpense(null)
+              setActiveTab('settlement')
+            }}
+          />
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-950 py-8 px-4 relative">
       {/* 互動背景特效 */}
@@ -341,6 +393,7 @@ function App() {
               expenses={expenses}
               members={members}
               onExpensesUpdated={refreshChannel}
+              onViewItemizedExpense={setViewingItemizedExpense}
             />
           </TabsContent>
 
