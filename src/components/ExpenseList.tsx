@@ -136,7 +136,14 @@ export default function ExpenseList({ accessKey, expenses, members, onExpensesUp
             {expenses?.map((expense, index) => (
               <Card
                 key={expense.id}
-                className="bg-muted/50 transition-all hover:shadow-lg hover:scale-[1.02] animate-in fade-in-50 slide-in-from-bottom-5 duration-300"
+                className={`
+                  bg-muted/50 transition-all hover:shadow-lg hover:scale-[1.02]
+                  animate-in fade-in-50 slide-in-from-bottom-5 duration-300
+                  ${expense.mode === 'itemized'
+                    ? 'border-l-4 border-l-purple-500 dark:border-l-purple-400'
+                    : 'border-l-4 border-l-blue-500 dark:border-l-blue-400'
+                  }
+                `}
                 style={{ animationDelay: `${index * 50}ms` }}
               >
                 <CardContent className="pt-6">
@@ -244,7 +251,7 @@ export default function ExpenseList({ accessKey, expenses, members, onExpensesUp
                             ${Math.round(expense.amount)}
                           </span>
                           {expense.mode === 'itemized' && (
-                            <Badge variant="outline" className="ml-2">
+                            <Badge variant="outline" className="ml-2 bg-purple-50 dark:bg-purple-950/20 border-purple-300 dark:border-purple-700 text-purple-700 dark:text-purple-300">
                               📋 明細模式
                             </Badge>
                           )}
@@ -259,12 +266,24 @@ export default function ExpenseList({ accessKey, expenses, members, onExpensesUp
                           // 明細模式顯示
                           <>
                             <div className="flex items-center gap-2 text-sm">
-                              <span className="text-muted-foreground">品項數量:</span>
-                              <Badge variant="secondary">{expense.items?.length || 0} 個品項</Badge>
+                              <span className="text-muted-foreground">🏷️ 品項數量:</span>
+                              <Badge variant="secondary" className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">
+                                {expense.items?.length || 0} 個品項
+                              </Badge>
                             </div>
                             <div className="flex items-center gap-2 text-sm">
-                              <span className="text-muted-foreground">參與人數:</span>
-                              <Badge variant="secondary">{expense.participants?.length || 0} 人</Badge>
+                              <span className="text-muted-foreground">👥 參與人數:</span>
+                              <Badge variant="secondary" className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">
+                                {(() => {
+                                  // 計算有多少不同的人認領了品項
+                                  const uniqueClaimers = new Set<string>();
+                                  expense.items?.forEach(item => {
+                                    item.claimedBy.forEach(claimer => uniqueClaimers.add(claimer));
+                                  });
+                                  return uniqueClaimers.size;
+                                })()}
+                                {' '}人
+                              </Badge>
                             </div>
                           </>
                         ) : (
