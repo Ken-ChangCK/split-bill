@@ -3,14 +3,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
 import { ItemList } from './ItemList';
 import { RemainderHandling } from './RemainderHandling';
 import { UserSwitcher } from './UserSwitcher';
 import { UserSelector } from './UserSelector';
-import { useCurrentUser, useItemActions } from '@/hooks';
+import { useCurrentUser, useItemActions, useAutoRefresh } from '@/hooks';
 import { ExpenseItem } from '@/types/channel';
 import { createItem, updateRemainderHandling } from '@/api/items';
-import { Receipt, User as UserIcon, DollarSign, Calendar, CheckCircle2 } from 'lucide-react';
+import { Receipt, User as UserIcon, DollarSign, Calendar, CheckCircle2, RefreshCw, Pause, Play } from 'lucide-react';
 
 interface ItemizedExpenseManagerProps {
   accessKey: string;
@@ -55,6 +56,29 @@ export function ItemizedExpenseManager({
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isUpdatingRemainder, setIsUpdatingRemainder] = useState(false);
+  const [refreshError, setRefreshError] = useState<string>('');
+
+  // 自動刷新機制（每 10 秒刷新一次）
+  const {
+    isRefreshing,
+    lastRefreshTime,
+    isPaused,
+    pauseRefresh,
+    resumeRefresh,
+    manualRefresh
+  } = useAutoRefresh({
+    enabled: true,
+    interval: 10000, // 10 秒
+    onRefresh: async () => {
+      await onRefresh();
+    },
+    onError: (err) => {
+      console.error('Auto refresh error:', err);
+      setRefreshError('自動刷新失敗，請檢查網路連線');
+      // 3秒後清除錯誤訊息
+      setTimeout(() => setRefreshError(''), 3000);
+    }
+  });
 
   // 使用 useItemActions Hook
   const {
@@ -144,6 +168,60 @@ export function ItemizedExpenseManager({
 
   return (
     <div className="space-y-6">
+      {/* 自動刷新狀態指示器 */}
+      <div className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg border border-slate-700">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <RefreshCw className={`h-4 w-4 text-blue-400 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span className="text-sm text-slate-300">
+              {isRefreshing ? '同步中...' : '自動同步已啟用'}
+            </span>
+          </div>
+          {lastRefreshTime && !isRefreshing && (
+            <Badge variant="secondary" className="text-xs">
+              最後更新：{lastRefreshTime.toLocaleTimeString()}
+            </Badge>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={manualRefresh}
+            variant="ghost"
+            size="sm"
+            disabled={isRefreshing}
+            className="gap-1 h-8"
+          >
+            <RefreshCw className="h-3 w-3" />
+            立即刷新
+          </Button>
+          <Button
+            onClick={isPaused ? resumeRefresh : pauseRefresh}
+            variant="ghost"
+            size="sm"
+            className="gap-1 h-8"
+          >
+            {isPaused ? (
+              <>
+                <Play className="h-3 w-3" />
+                恢復
+              </>
+            ) : (
+              <>
+                <Pause className="h-3 w-3" />
+                暫停
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
+
+      {/* 刷新錯誤訊息 */}
+      {refreshError && (
+        <Alert variant="destructive">
+          <AlertDescription>{refreshError}</AlertDescription>
+        </Alert>
+      )}
+
       {/* 頂端：支出資訊 */}
       <Card>
         <CardHeader>
