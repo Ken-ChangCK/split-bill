@@ -80,7 +80,7 @@ export function UserSwitcher({
                 <div className="font-semibold text-lg">{currentUser || '未選擇'}</div>
                 {showClaimedTotal && claimedTotal !== undefined && (
                   <div className="text-sm text-muted-foreground">
-                    已認領：<span className="font-medium text-primary">¥{claimedTotal.toFixed(0)}</span>
+                    已認領：<span className="font-medium text-primary">${claimedTotal.toFixed(0)}</span>
                   </div>
                 )}
               </div>

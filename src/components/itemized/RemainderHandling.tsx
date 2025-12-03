@@ -52,12 +52,12 @@ export function RemainderHandling({
         <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-4">
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">總金額</span>
-            <span className="font-medium">¥{totalAmount.toFixed(2)}</span>
+            <span className="font-medium">${totalAmount.toFixed(2)}</span>
           </div>
           <div className="flex items-center justify-between mt-2">
             <span className="text-sm text-muted-foreground">已認領</span>
             <span className="font-medium text-green-600 dark:text-green-400">
-              ¥{claimedAmount.toFixed(2)}
+              ${claimedAmount.toFixed(2)}
             </span>
           </div>
           <div className="border-t border-slate-200 dark:border-slate-700 my-2" />
@@ -66,7 +66,7 @@ export function RemainderHandling({
             <span className={`font-bold text-lg ${
               hasRemainder ? 'text-orange-600 dark:text-orange-400' : 'text-green-600 dark:text-green-400'
             }`}>
-              ¥{remainderAmount.toFixed(2)}
+              ${remainderAmount.toFixed(2)}
             </span>
           </div>
         </div>
@@ -102,7 +102,7 @@ export function RemainderHandling({
                       付款人承擔
                     </Label>
                     <p className="text-sm text-muted-foreground">
-                      剩餘的 ¥{remainderAmount.toFixed(2)} 由付款人 <span className="font-medium">{payer}</span> 承擔
+                      剩餘的 ${remainderAmount.toFixed(2)} 由付款人 <span className="font-medium">{payer}</span> 承擔
                     </p>
                   </div>
                 </div>
@@ -118,7 +118,7 @@ export function RemainderHandling({
                       全員平分
                     </Label>
                     <p className="text-sm text-muted-foreground">
-                      剩餘金額由全體成員平分，每人加收 ¥{perPersonRemainder.toFixed(2)}
+                      剩餘金額由全體成員平分，每人加收 ${perPersonRemainder.toFixed(2)}
                     </p>
                   </div>
                 </div>
@@ -131,7 +131,7 @@ export function RemainderHandling({
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
                   <p className="text-sm">
-                    共 {memberCount} 位成員，每人需額外分攤 ¥{perPersonRemainder.toFixed(2)}
+                    共 {memberCount} 位成員，每人需額外分攤 ${perPersonRemainder.toFixed(2)}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
                     此金額會自動加到每位成員的認領總額中

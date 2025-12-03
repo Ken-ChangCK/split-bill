@@ -3,91 +3,36 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Calculator } from 'lucide-react'
+import { Calculator, Users, Receipt } from 'lucide-react'
 import { Expense } from '@/types/channel'
+import {
+  calculateMixedSettlement,
+  Balance,
+  Transaction,
+  ItemizedDetails
+} from '@/utils/settlement'
 
 interface SettlementResultProps {
   members: string[]
   expenses: Expense[]
 }
 
-interface Balance {
-  name: string
-  balance: number
-}
-
-interface Transaction {
-  from: string
-  to: string
-  amount: number
-}
-
 export default function SettlementResult({ members, expenses }: SettlementResultProps) {
   const [calculated, setCalculated] = useState(false)
   const [balances, setBalances] = useState<Balance[]>([])
   const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [itemizedDetails, setItemizedDetails] = useState<ItemizedDetails>({})
+  const [hasSplitExpenses, setHasSplitExpenses] = useState(false)
+  const [hasItemizedExpenses, setHasItemizedExpenses] = useState(false)
 
   const calculateSettlement = () => {
-    // 初始化每個人的餘額
-    const balanceMap: { [key: string]: number } = {}
-    members.forEach(member => {
-      balanceMap[member] = 0
-    })
+    const result = calculateMixedSettlement(members, expenses)
 
-    // 計算每個人的淨額
-    expenses.forEach(expense => {
-      const { payer, amount, participants } = expense
-
-      // 只處理平分模式的支出（有 participants 的）
-      if (!participants || participants?.length === 0) return
-
-      const sharePerPerson = amount / participants.length
-
-      // 付款人實際支付了全額
-      balanceMap[payer] += amount
-
-      // 每個參與者應付的金額
-      participants.forEach(participant => {
-        balanceMap[participant] -= sharePerPerson
-      })
-    })
-
-    // 轉換為 Balance 陣列並排序
-    const balanceList: Balance[] = Object.entries(balanceMap).map(([name, balance]) => ({
-      name,
-      balance
-    }))
-
-    // 分離債權人和債務人
-    const creditors = balanceList.filter(b => b.balance > 0.01).sort((a, b) => b.balance - a.balance)
-    const debtors = balanceList.filter(b => b.balance < -0.01).sort((a, b) => a.balance - b.balance)
-
-    // 使用貪婪算法計算最優還款方案
-    const transactionList: Transaction[] = []
-    const creditorsCopy = creditors.map(c => ({ ...c }))
-    const debtorsCopy = debtors.map(d => ({ ...d }))
-
-    while (creditorsCopy.length > 0 && debtorsCopy.length > 0) {
-      const maxCreditor = creditorsCopy[0]
-      const maxDebtor = debtorsCopy[0]
-
-      const transferAmount = Math.min(maxCreditor.balance, -maxDebtor.balance)
-
-      transactionList.push({
-        from: maxDebtor.name,
-        to: maxCreditor.name,
-        amount: transferAmount
-      })
-
-      maxCreditor.balance -= transferAmount
-      maxDebtor.balance += transferAmount
-
-      if (maxCreditor.balance < 0.01) creditorsCopy.shift()
-      if (maxDebtor.balance > -0.01) debtorsCopy.shift()
-    }
-
-    setBalances(balanceList)
-    setTransactions(transactionList)
+    setBalances(result.balances)
+    setTransactions(result.transactions)
+    setItemizedDetails(result.itemizedDetails)
+    setHasSplitExpenses(result.hasSplitExpenses)
+    setHasItemizedExpenses(result.hasItemizedExpenses)
     setCalculated(true)
   }
 
@@ -124,6 +69,79 @@ export default function SettlementResult({ members, expenses }: SettlementResult
           </Button>
         ) : (
           <>
+            {/* 模式標籤 */}
+            {(hasSplitExpenses || hasItemizedExpenses) && (
+              <div className="flex gap-2 mb-2">
+                {hasSplitExpenses && (
+                  <Badge variant="secondary" className="flex items-center gap-1">
+                    <Users className="h-3 w-3" />
+                    平分模式
+                  </Badge>
+                )}
+                {hasItemizedExpenses && (
+                  <Badge variant="secondary" className="flex items-center gap-1">
+                    <Receipt className="h-3 w-3" />
+                    明細模式
+                  </Badge>
+                )}
+              </div>
+            )}
+
+            {/* 明細模式詳細資訊 */}
+            {hasItemizedExpenses && (
+              <div>
+                <h3 className="text-lg font-semibold mb-3">明細模式消費明細</h3>
+                <div className="space-y-3">
+                  {members.map(member => {
+                    const details = itemizedDetails[member]
+                    if (!details || details.items.length === 0) return null
+
+                    return (
+                      <Card key={member} className="bg-purple-50/50 dark:bg-purple-950/20">
+                        <CardContent className="pt-4">
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between font-semibold">
+                              <span className="flex items-center gap-2">
+                                👤 {member}
+                              </span>
+                              <span className="text-purple-600 dark:text-purple-400">
+                                ${Math.round(details.total)}
+                              </span>
+                            </div>
+                            <div className="space-y-1 text-sm">
+                              {details.items.map((item, idx) => (
+                                <div key={idx} className="flex items-center justify-between pl-4">
+                                  <span className="text-muted-foreground">
+                                    • {item.name}
+                                    {item.isShared && (
+                                      <span className="text-xs ml-1">
+                                        (與 {item.sharedWith?.join(', ')} 平分)
+                                      </span>
+                                    )}
+                                  </span>
+                                  <span className="font-medium">
+                                    ${Math.round(item.personalShare)}
+                                  </span>
+                                </div>
+                              ))}
+                              {details.remainderShare && details.remainderShare > 0.01 && (
+                                <div className="flex items-center justify-between pl-4 text-orange-600 dark:text-orange-400">
+                                  <span>• 剩餘費用分攤</span>
+                                  <span className="font-medium">
+                                    ${Math.round(details.remainderShare)}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* 各人收支狀況 */}
             <div>
               <h3 className="text-lg font-semibold mb-3">各人收支狀況</h3>

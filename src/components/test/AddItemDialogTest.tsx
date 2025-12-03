@@ -25,7 +25,7 @@ export function AddItemDialogTest() {
 
   // 處理品項新增
   const handleItemAdded = async (item: { name: string; price: number }) => {
-    addTestResult(`📝 嘗試新增品項：${item.name} - ¥${item.price}`);
+    addTestResult(`📝 嘗試新增品項：${item.name} - $${item.price}`);
 
     // 模擬 API 呼叫
     setIsLoading(true);
@@ -43,7 +43,7 @@ export function AddItemDialogTest() {
       };
 
       setItems(prev => [...prev, newItem]);
-      addTestResult(`✅ 品項新增成功：${item.name} - ¥${item.price}`);
+      addTestResult(`✅ 品項新增成功：${item.name} - $${item.price}`);
 
       // 關閉對話框
       setIsDialogOpen(false);
@@ -143,7 +143,7 @@ export function AddItemDialogTest() {
                 <div className="space-y-1 text-sm">
                   <p><strong>統計資訊：</strong></p>
                   <p>• 品項數量：{items.length} 個</p>
-                  <p>• 總金額：¥{totalAmount.toFixed(2)}</p>
+                  <p>• 總金額：${totalAmount.toFixed(2)}</p>
                 </div>
               </AlertDescription>
             </Alert>
@@ -178,7 +178,7 @@ export function AddItemDialogTest() {
                         <div>
                           <p className="font-semibold text-white">{item.name}</p>
                           <p className="text-sm text-gray-400">
-                            ¥{item.price.toFixed(2)}
+                            ${item.price.toFixed(2)}
                           </p>
                           <p className="text-xs text-gray-500 mt-1">
                             {item.timestamp.toLocaleTimeString()}

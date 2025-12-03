@@ -156,7 +156,7 @@ export function ItemizedExpenseManager({
               <CardDescription className="space-y-1 mt-2">
                 <div className="flex items-center gap-2">
                   <DollarSign className="h-4 w-4" />
-                  <span>總金額：¥{totalAmount.toFixed(2)}</span>
+                  <span>總金額：${totalAmount.toFixed(2)}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <UserIcon className="h-4 w-4" />

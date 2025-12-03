@@ -141,7 +141,7 @@ export function ItemCard({
 
               {/* 金額 */}
               <p className="text-lg font-bold text-primary mt-1">
-                ¥{item.price.toFixed(2)}
+                ${item.price.toFixed(2)}
               </p>
 
               {/* 認領狀態 */}
@@ -169,7 +169,7 @@ export function ItemCard({
                     {/* 多人分攤金額 */}
                     {isMultipleClaimed && (
                       <p className="text-sm text-gray-600 dark:text-gray-400">
-                        每人應付 ¥{pricePerPerson.toFixed(2)}
+                        每人應付 ${pricePerPerson.toFixed(2)}
                       </p>
                     )}
 

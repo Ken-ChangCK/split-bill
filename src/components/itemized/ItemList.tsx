@@ -128,10 +128,10 @@ export function ItemList({
               <Progress value={progress} className="h-2" />
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">
-                  已認領 ¥{claimedAmount.toFixed(2)}
+                  已認領 ${claimedAmount.toFixed(2)}
                 </span>
                 <span className="text-muted-foreground">
-                  剩餘 ¥{remainingAmount.toFixed(2)}
+                  剩餘 ${remainingAmount.toFixed(2)}
                 </span>
               </div>
             </div>
@@ -143,7 +143,7 @@ export function ItemList({
                 <AlertDescription>
                   <span className="font-medium">{currentUser}</span> 已認領：
                   <span className="font-bold text-primary ml-1">
-                    ¥{userClaimedAmount.toFixed(2)}
+                    ${userClaimedAmount.toFixed(2)}
                   </span>
                 </AlertDescription>
               </Alert>
