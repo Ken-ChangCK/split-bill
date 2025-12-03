@@ -63,23 +63,23 @@ export function UserSwitcher({
     <>
       {/* 當前使用者顯示卡片 */}
       <Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
+        <CardContent className="p-3 sm:p-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             {/* 左側：使用者資訊 */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
               {/* 頭像 */}
-              <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-lg">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-base sm:text-lg flex-shrink-0">
                 {currentUser?.charAt(0).toUpperCase() || '?'}
               </div>
 
               {/* 名稱和總額 */}
-              <div>
+              <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">當前身份</span>
+                  <span className="text-xs sm:text-sm text-muted-foreground">當前身份</span>
                 </div>
-                <div className="font-semibold text-lg">{currentUser || '未選擇'}</div>
+                <div className="font-semibold text-base sm:text-lg truncate">{currentUser || '未選擇'}</div>
                 {showClaimedTotal && claimedTotal !== undefined && (
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-xs sm:text-sm text-muted-foreground">
                     已認領：<span className="font-medium text-primary">${claimedTotal.toFixed(0)}</span>
                   </div>
                 )}
@@ -91,10 +91,10 @@ export function UserSwitcher({
               onClick={handleOpenDialog}
               variant="outline"
               size="sm"
-              className="gap-2"
+              className="gap-2 w-full sm:w-auto"
             >
               <RefreshCw className="h-4 w-4" />
-              切換身份
+              <span>切換身份</span>
             </Button>
           </div>
         </CardContent>

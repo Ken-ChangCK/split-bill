@@ -169,8 +169,8 @@ export function ItemizedExpenseManager({
   return (
     <div className="space-y-6">
       {/* 自動刷新狀態指示器 */}
-      <div className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg border border-slate-700">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 bg-slate-800/50 rounded-lg border border-slate-700">
+        <div className="flex items-center gap-3 flex-wrap">
           <div className="flex items-center gap-2">
             <RefreshCw className={`h-4 w-4 text-blue-400 ${isRefreshing ? 'animate-spin' : ''}`} />
             <span className="text-sm text-slate-300">
@@ -183,32 +183,32 @@ export function ItemizedExpenseManager({
             </Badge>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <Button
             onClick={manualRefresh}
             variant="ghost"
             size="sm"
             disabled={isRefreshing}
-            className="gap-1 h-8"
+            className="gap-1 h-8 flex-1 sm:flex-none"
           >
             <RefreshCw className="h-3 w-3" />
-            立即刷新
+            <span className="sm:inline">立即刷新</span>
           </Button>
           <Button
             onClick={isPaused ? resumeRefresh : pauseRefresh}
             variant="ghost"
             size="sm"
-            className="gap-1 h-8"
+            className="gap-1 h-8 flex-1 sm:flex-none"
           >
             {isPaused ? (
               <>
                 <Play className="h-3 w-3" />
-                恢復
+                <span className="sm:inline">恢復</span>
               </>
             ) : (
               <>
                 <Pause className="h-3 w-3" />
-                暫停
+                <span className="sm:inline">暫停</span>
               </>
             )}
           </Button>
@@ -225,25 +225,25 @@ export function ItemizedExpenseManager({
       {/* 頂端：支出資訊 */}
       <Card>
         <CardHeader>
-          <div className="flex items-start justify-between">
-            <div className="space-y-1">
-              <CardTitle className="text-2xl flex items-center gap-2">
-                <Receipt className="h-6 w-6" />
-                {expenseName}
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+            <div className="space-y-1 flex-1 min-w-0">
+              <CardTitle className="text-xl sm:text-2xl flex items-center gap-2 break-words">
+                <Receipt className="h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0" />
+                <span className="truncate">{expenseName}</span>
               </CardTitle>
               <CardDescription className="space-y-1 mt-2">
                 <div className="flex items-center gap-2">
-                  <DollarSign className="h-4 w-4" />
-                  <span>總金額：${totalAmount.toFixed(2)}</span>
+                  <DollarSign className="h-4 w-4 flex-shrink-0" />
+                  <span className="text-sm sm:text-base">總金額：${totalAmount.toFixed(2)}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <UserIcon className="h-4 w-4" />
-                  <span>付款人：{payer}</span>
+                  <UserIcon className="h-4 w-4 flex-shrink-0" />
+                  <span className="text-sm sm:text-base">付款人：{payer}</span>
                 </div>
                 {createdAt && (
                   <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4" />
-                    <span>建立時間：{new Date(createdAt).toLocaleString()}</span>
+                    <Calendar className="h-4 w-4 flex-shrink-0" />
+                    <span className="text-sm sm:text-base">建立時間：{new Date(createdAt).toLocaleString()}</span>
                   </div>
                 )}
               </CardDescription>
@@ -255,7 +255,7 @@ export function ItemizedExpenseManager({
                 onClick={onComplete}
                 variant={allItemsClaimed ? "default" : "outline"}
                 size="lg"
-                className="gap-2"
+                className="gap-2 w-full lg:w-auto"
               >
                 {allItemsClaimed && <CheckCircle2 className="h-5 w-5" />}
                 完成並查看結算

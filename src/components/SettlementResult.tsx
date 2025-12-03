@@ -24,6 +24,8 @@ export default function SettlementResult({ members, expenses }: SettlementResult
   const [itemizedDetails, setItemizedDetails] = useState<ItemizedDetails>({})
   const [hasSplitExpenses, setHasSplitExpenses] = useState(false)
   const [hasItemizedExpenses, setHasItemizedExpenses] = useState(false)
+  const [showSplitDetails, setShowSplitDetails] = useState(true)
+  const [showItemizedDetails, setShowItemizedDetails] = useState(true)
 
   const calculateSettlement = () => {
     const result = calculateMixedSettlement(members, expenses)
@@ -71,80 +73,239 @@ export default function SettlementResult({ members, expenses }: SettlementResult
           <>
             {/* 模式標籤 */}
             {(hasSplitExpenses || hasItemizedExpenses) && (
-              <div className="flex gap-2 mb-2">
+              <div className="flex gap-2 mb-4">
                 {hasSplitExpenses && (
-                  <Badge variant="secondary" className="flex items-center gap-1">
+                  <Badge
+                    variant={showSplitDetails ? "default" : "secondary"}
+                    className="flex items-center gap-1 cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => setShowSplitDetails(!showSplitDetails)}
+                  >
                     <Users className="h-3 w-3" />
                     平分模式
+                    {showSplitDetails ? (
+                      <span className="ml-1 text-xs">▼</span>
+                    ) : (
+                      <span className="ml-1 text-xs">▶</span>
+                    )}
                   </Badge>
                 )}
                 {hasItemizedExpenses && (
-                  <Badge variant="secondary" className="flex items-center gap-1">
+                  <Badge
+                    variant={showItemizedDetails ? "default" : "secondary"}
+                    className="flex items-center gap-1 cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => setShowItemizedDetails(!showItemizedDetails)}
+                  >
                     <Receipt className="h-3 w-3" />
                     明細模式
+                    {showItemizedDetails ? (
+                      <span className="ml-1 text-xs">▼</span>
+                    ) : (
+                      <span className="ml-1 text-xs">▶</span>
+                    )}
                   </Badge>
                 )}
               </div>
             )}
 
-            {/* 明細模式詳細資訊 */}
-            {hasItemizedExpenses && (
-              <div>
-                <h3 className="text-lg font-semibold mb-3">明細模式消費明細</h3>
+            {/* 平分模式支出明細 */}
+            {hasSplitExpenses && showSplitDetails && (
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  平分模式支出明細
+                </h3>
                 <div className="space-y-3">
-                  {members.map(member => {
-                    const details = itemizedDetails[member]
-                    if (!details || details.items.length === 0) return null
+                  {expenses
+                    .filter(expense => expense.mode !== 'itemized' && expense.participants && expense.participants.length > 0)
+                    .map((expense, idx) => {
+                      const sharePerPerson = expense.amount / expense.participants!.length
+                      return (
+                        <Card key={idx} className="bg-blue-50/50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
+                          <CardContent className="pt-4">
+                            <div className="space-y-3">
+                              {/* 支出標題和總額 */}
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <Receipt className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                  <span className="font-semibold text-base">{expense.itemName}</span>
+                                </div>
+                                <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                                  ${expense.amount.toFixed(2)}
+                                </span>
+                              </div>
 
-                    return (
-                      <Card key={member} className="bg-purple-50/50 dark:bg-purple-950/20">
-                        <CardContent className="pt-4">
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between font-semibold">
-                              <span className="flex items-center gap-2">
-                                👤 {member}
-                              </span>
-                              <span className="text-purple-600 dark:text-purple-400">
-                                ${Math.round(details.total)}
-                              </span>
+                              {/* 付款人 */}
+                              <div className="flex items-center gap-2 text-sm">
+                                <span className="text-muted-foreground">付款人：</span>
+                                <Badge variant="outline" className="font-medium">
+                                  {expense.payer}
+                                </Badge>
+                              </div>
+
+                              {/* 參與者和分攤金額 */}
+                              <div className="space-y-2">
+                                <div className="flex items-center gap-2 text-sm">
+                                  <span className="text-muted-foreground">參與者：</span>
+                                  <div className="flex gap-1 flex-wrap">
+                                    {expense.participants!.map((participant, pIdx) => (
+                                      <Badge key={pIdx} variant="secondary" className="text-xs">
+                                        {participant}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div className="bg-blue-100 dark:bg-blue-900/30 rounded-lg p-2 text-sm">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-muted-foreground">每人應付：</span>
+                                    <span className="font-semibold text-blue-700 dark:text-blue-300">
+                                      ${sharePerPerson.toFixed(2)}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
-                            <div className="space-y-1 text-sm">
-                              {details.items.map((item, idx) => (
-                                <div key={idx} className="flex items-center justify-between pl-4">
-                                  <span className="text-muted-foreground">
-                                    • {item.name}
-                                    {item.isShared && (
-                                      <span className="text-xs ml-1">
-                                        (與 {item.sharedWith?.join(', ')} 平分)
-                                      </span>
-                                    )}
-                                  </span>
-                                  <span className="font-medium">
-                                    ${Math.round(item.personalShare)}
-                                  </span>
+                          </CardContent>
+                        </Card>
+                      )
+                    })}
+                </div>
+              </div>
+            )}
+
+            {/* 明細模式詳細資訊 */}
+            {hasItemizedExpenses && showItemizedDetails && (
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <Receipt className="h-5 w-5" />
+                  明細模式消費明細
+                </h3>
+                <div className="space-y-4">
+                  {expenses
+                    .filter(expense => expense.mode === 'itemized' && expense.items)
+                    .map((expense, expIdx) => (
+                      <Card key={expIdx} className="bg-purple-50/50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-800">
+                        <CardContent className="pt-4">
+                          <div className="space-y-3">
+                            {/* 支出標題和付款人 */}
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <Receipt className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                                  <span className="font-semibold text-base">{expense.itemName}</span>
+                                </div>
+                                <span className="text-lg font-bold text-purple-600 dark:text-purple-400">
+                                  ${expense.amount.toFixed(2)}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 text-sm">
+                                <span className="text-muted-foreground">付款人：</span>
+                                <Badge variant="outline" className="font-medium">
+                                  {expense.payer}
+                                </Badge>
+                              </div>
+                            </div>
+
+                            {/* 品項列表 */}
+                            <div className="space-y-2">
+                              <div className="text-sm font-medium text-muted-foreground">品項明細：</div>
+                              {expense.items!.map((item, itemIdx) => (
+                                <div key={itemIdx} className="bg-white dark:bg-slate-800 rounded-lg p-3">
+                                  <div className="flex items-start justify-between mb-2">
+                                    <span className="font-medium">{item.name}</span>
+                                    <span className="font-semibold text-purple-600 dark:text-purple-400">
+                                      ${item.price.toFixed(2)}
+                                    </span>
+                                  </div>
+                                  {item.claimedBy.length > 0 ? (
+                                    <div className="space-y-1">
+                                      <div className="flex items-center gap-2 text-sm">
+                                        <span className="text-muted-foreground">認領人：</span>
+                                        <div className="flex gap-1 flex-wrap">
+                                          {item.claimedBy.map((claimer, cIdx) => (
+                                            <Badge key={cIdx} variant="secondary" className="text-xs">
+                                              {claimer}
+                                            </Badge>
+                                          ))}
+                                        </div>
+                                      </div>
+                                      {item.claimedBy.length > 1 && (
+                                        <div className="text-xs text-muted-foreground">
+                                          每人應付：${(item.price / item.claimedBy.length).toFixed(2)}
+                                        </div>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <div className="text-sm text-orange-600 dark:text-orange-400">
+                                      尚未認領
+                                    </div>
+                                  )}
                                 </div>
                               ))}
-                              {details.remainderShare && details.remainderShare > 0.01 && (
-                                <div className="flex items-center justify-between pl-4 text-orange-600 dark:text-orange-400">
-                                  <span>• 剩餘費用分攤</span>
-                                  <span className="font-medium">
-                                    ${Math.round(details.remainderShare)}
-                                  </span>
-                                </div>
-                              )}
                             </div>
+
+                            {/* 剩餘金額處理 */}
+                            {(() => {
+                              const claimedTotal = expense.items!.reduce((sum, item) =>
+                                item.claimedBy.length > 0 ? sum + item.price : sum, 0
+                              )
+                              const remainder = expense.amount - claimedTotal
+                              if (remainder > 0.01) {
+                                return (
+                                  <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-3 text-sm">
+                                    <div className="flex items-center justify-between mb-1">
+                                      <span className="font-medium text-orange-700 dark:text-orange-300">
+                                        剩餘金額：
+                                      </span>
+                                      <span className="font-semibold text-orange-700 dark:text-orange-300">
+                                        ${remainder.toFixed(2)}
+                                      </span>
+                                    </div>
+                                    <div className="text-xs text-orange-600 dark:text-orange-400">
+                                      {expense.remainderHandling === 'split-all'
+                                        ? `全員平分（每人 $${(remainder / members.length).toFixed(2)}）`
+                                        : `由付款人 ${expense.payer} 承擔`
+                                      }
+                                    </div>
+                                  </div>
+                                )
+                              }
+                              return null
+                            })()}
                           </div>
                         </CardContent>
                       </Card>
-                    )
-                  })}
+                    ))}
+                </div>
+
+                {/* 按人顯示的總額摘要 */}
+                <div className="mt-4 space-y-2">
+                  <div className="text-sm font-medium text-muted-foreground">各人明細模式消費總額：</div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {members.map(member => {
+                      const details = itemizedDetails[member]
+                      if (!details || details.total === 0) return null
+                      return (
+                        <div key={member} className="bg-purple-100 dark:bg-purple-900/30 rounded-lg p-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium">👤 {member}</span>
+                            <span className="text-sm font-semibold text-purple-600 dark:text-purple-400">
+                              ${Math.round(details.total)}
+                            </span>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
                 </div>
               </div>
             )}
 
             {/* 各人收支狀況 */}
-            <div>
-              <h3 className="text-lg font-semibold mb-3">各人收支狀況</h3>
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                <Calculator className="h-5 w-5" />
+                各人收支狀況
+              </h3>
               <div className="space-y-2">
                 {balances
                   .sort((a, b) => b.balance - a.balance)
@@ -171,9 +332,9 @@ export default function SettlementResult({ members, expenses }: SettlementResult
             </div>
 
             {/* 還款方案 */}
-            <div>
-              <h3 className="text-lg font-semibold mb-3">
-                還款方案 (共 {transactions.length} 筆交易)
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                💸 還款方案 ({transactions.length} 筆交易)
               </h3>
               {transactions.length === 0 ? (
                 <Alert>

@@ -39,31 +39,31 @@ export function RemainderHandling({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <DollarSign className="h-5 w-5" />
-          剩餘金額處理
+        <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
+          <DollarSign className="h-5 w-5 flex-shrink-0" />
+          <span>剩餘金額處理</span>
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-sm">
           選擇如何處理未認領的品項金額
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* 剩餘金額顯示 */}
-        <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-4">
+        <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-3 sm:p-4">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">總金額</span>
-            <span className="font-medium">${totalAmount.toFixed(2)}</span>
+            <span className="text-xs sm:text-sm text-muted-foreground">總金額</span>
+            <span className="font-medium text-sm sm:text-base">${totalAmount.toFixed(2)}</span>
           </div>
           <div className="flex items-center justify-between mt-2">
-            <span className="text-sm text-muted-foreground">已認領</span>
-            <span className="font-medium text-green-600 dark:text-green-400">
+            <span className="text-xs sm:text-sm text-muted-foreground">已認領</span>
+            <span className="font-medium text-sm sm:text-base text-green-600 dark:text-green-400">
               ${claimedAmount.toFixed(2)}
             </span>
           </div>
           <div className="border-t border-slate-200 dark:border-slate-700 my-2" />
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">剩餘金額</span>
-            <span className={`font-bold text-lg ${
+            <span className="text-sm sm:text-base font-medium">剩餘金額</span>
+            <span className={`font-bold text-base sm:text-lg ${
               hasRemainder ? 'text-orange-600 dark:text-orange-400' : 'text-green-600 dark:text-green-400'
             }`}>
               ${remainderAmount.toFixed(2)}
@@ -85,39 +85,40 @@ export function RemainderHandling({
         {hasRemainder && (
           <>
             <div className="space-y-3">
-              <Label>處理方式</Label>
+              <Label className="text-sm sm:text-base">處理方式</Label>
               <RadioGroup
                 value={remainderHandling}
                 onValueChange={(value) => onHandlingChange(value as 'payer' | 'split-all')}
                 disabled={disabled}
+                className="space-y-3"
               >
                 {/* 付款人承擔 */}
-                <div className="flex items-start space-x-3 space-y-0">
-                  <RadioGroupItem value="payer" id="payer" />
-                  <div className="space-y-1 leading-none flex-1">
+                <div className="flex items-start space-x-2 sm:space-x-3 space-y-0 p-3 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                  <RadioGroupItem value="payer" id="payer" className="mt-0.5" />
+                  <div className="space-y-1 leading-none flex-1 min-w-0">
                     <Label
                       htmlFor="payer"
-                      className="font-medium cursor-pointer"
+                      className="font-medium cursor-pointer text-sm sm:text-base"
                     >
                       付款人承擔
                     </Label>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-xs sm:text-sm text-muted-foreground break-words">
                       剩餘的 ${remainderAmount.toFixed(2)} 由付款人 <span className="font-medium">{payer}</span> 承擔
                     </p>
                   </div>
                 </div>
 
                 {/* 全員平分 */}
-                <div className="flex items-start space-x-3 space-y-0">
-                  <RadioGroupItem value="split-all" id="split-all" />
-                  <div className="space-y-1 leading-none flex-1">
+                <div className="flex items-start space-x-2 sm:space-x-3 space-y-0 p-3 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                  <RadioGroupItem value="split-all" id="split-all" className="mt-0.5" />
+                  <div className="space-y-1 leading-none flex-1 min-w-0">
                     <Label
                       htmlFor="split-all"
-                      className="font-medium cursor-pointer"
+                      className="font-medium cursor-pointer text-sm sm:text-base"
                     >
                       全員平分
                     </Label>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-xs sm:text-sm text-muted-foreground break-words">
                       剩餘金額由全體成員平分，每人加收 ${perPersonRemainder.toFixed(2)}
                     </p>
                   </div>

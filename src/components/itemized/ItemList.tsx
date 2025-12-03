@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { ItemCard } from './ItemCard';
 import { AddItemDialog } from './AddItemDialog';
-import { Plus, Package, AlertCircle } from 'lucide-react';
+import { Plus, Package, AlertCircle, Sparkles, Info } from 'lucide-react';
 import { ExpenseItem } from '@/types/channel';
 
 interface ItemListProps {
@@ -151,10 +152,21 @@ export function ItemList({
 
             {/* 完成提示 */}
             {progress === 100 && (
-              <Alert className="border-green-500 bg-green-50 dark:bg-green-950/20">
-                <AlertCircle className="h-4 w-4 text-green-600" />
+              <Alert className="border-green-500 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 shadow-lg">
+                <Sparkles className="h-5 w-5 text-green-600 animate-pulse" />
                 <AlertDescription className="text-green-700 dark:text-green-400">
-                  ✓ 所有品項已認領完成！
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">🎉</span>
+                      <span className="font-semibold">太棒了！所有品項已認領完成！</span>
+                    </div>
+                    <Badge className="bg-green-600 hover:bg-green-700">
+                      100%
+                    </Badge>
+                  </div>
+                  <p className="text-sm mt-2 text-green-600 dark:text-green-500">
+                    點擊下方「完成並查看結算」按鈕查看誰應該付給誰多少錢
+                  </p>
                 </AlertDescription>
               </Alert>
             )}
@@ -164,24 +176,46 @@ export function ItemList({
 
       {/* 品項列表 */}
       {items.length === 0 ? (
-        <Card>
+        <Card className="border-dashed border-2 border-gray-300 dark:border-gray-600">
           <CardContent className="py-12">
-            <div className="text-center space-y-3">
-              <Package className="h-12 w-12 mx-auto text-gray-400" />
+            <div className="text-center space-y-4">
+              <div className="relative inline-block">
+                <Package className="h-16 w-16 mx-auto text-gray-400 animate-bounce" />
+                <Sparkles className="h-6 w-6 absolute -top-2 -right-2 text-yellow-500 animate-pulse" />
+              </div>
               <div>
-                <p className="text-lg font-medium text-gray-900 dark:text-gray-100">
-                  尚無品項
+                <p className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                  開始新增品項吧！
                 </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                  點擊上方「新增品項」按鈕開始建立品項
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 max-w-md mx-auto">
+                  在明細模式中，你可以新增每個消費品項，然後由各自認領。這樣就能清楚知道每個人要付多少錢！
                 </p>
               </div>
+
+              {/* 操作引導 */}
+              <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4 max-w-md mx-auto text-left">
+                <div className="flex items-start gap-2">
+                  <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                  <div className="text-sm space-y-2">
+                    <p className="font-medium text-blue-900 dark:text-blue-100">
+                      如何使用：
+                    </p>
+                    <ol className="list-decimal list-inside space-y-1 text-blue-800 dark:text-blue-200">
+                      <li>新增消費品項（例如：生啤酒 $500）</li>
+                      <li>點擊「認領」按鈕認領你的品項</li>
+                      <li>多人可以一起分攤同一品項</li>
+                      <li>完成後查看結算結果</li>
+                    </ol>
+                  </div>
+                </div>
+              </div>
+
               <Button
                 onClick={() => setIsAddDialogOpen(true)}
-                variant="outline"
-                className="gap-2"
+                size="lg"
+                className="gap-2 shadow-lg hover:shadow-xl transition-shadow"
               >
-                <Plus className="h-4 w-4" />
+                <Plus className="h-5 w-5" />
                 新增第一個品項
               </Button>
             </div>

@@ -86,13 +86,13 @@ export function ItemCard({
   // 卡片邊框樣式
   const getCardBorderClass = () => {
     if (!isClaimed) {
-      return 'border-gray-300 dark:border-gray-600'; // 待認領：灰色
+      return 'border-dashed border-gray-300 dark:border-gray-600'; // 待認領：虛線灰色
     }
     if (isMultipleClaimed) {
-      return 'border-purple-500 dark:border-purple-400'; // 多人認領：紫色
+      return 'border-purple-500 dark:border-purple-400 shadow-lg shadow-purple-200 dark:shadow-purple-900/30'; // 多人認領：紫色 + 陰影
     }
     if (isClaimedByCurrentUser) {
-      return 'border-green-500 dark:border-green-400'; // 已認領（自己）：綠色
+      return 'border-green-500 dark:border-green-400 shadow-lg shadow-green-200 dark:shadow-green-900/30'; // 已認領（自己）：綠色 + 陰影
     }
     return 'border-blue-500 dark:border-blue-400'; // 已認領（他人）：藍色
   };
@@ -100,19 +100,19 @@ export function ItemCard({
   // 卡片背景樣式
   const getCardBgClass = () => {
     if (!isClaimed) {
-      return 'bg-white dark:bg-slate-800';
+      return 'bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-750';
     }
     if (isMultipleClaimed) {
       return 'bg-purple-50 dark:bg-purple-950/20';
     }
     if (isClaimedByCurrentUser) {
-      return 'bg-green-50 dark:bg-green-950/20';
+      return 'bg-green-50 dark:bg-green-950/20 ring-2 ring-green-200 dark:ring-green-900/50';
     }
     return 'bg-blue-50 dark:bg-blue-950/20';
   };
 
   return (
-    <Card className={`${getCardBorderClass()} ${getCardBgClass()} border-2 transition-all`}>
+    <Card className={`${getCardBorderClass()} ${getCardBgClass()} border-2 transition-all duration-300 hover:scale-[1.02] cursor-pointer`}>
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-3">
           {/* 左側：認領圖示 + 品項資訊 */}
@@ -186,7 +186,7 @@ export function ItemCard({
           </div>
 
           {/* 右側：操作按鈕 */}
-          <div className="flex items-start gap-2">
+          <div className="flex flex-col sm:flex-row items-end sm:items-start gap-2">
             {/* 認領/取消認領按鈕 */}
             {currentUser && (
               <>
@@ -196,7 +196,7 @@ export function ItemCard({
                     variant="outline"
                     size="sm"
                     disabled={isLoading || isActionLoading}
-                    className="whitespace-nowrap"
+                    className="whitespace-nowrap min-w-[80px] h-9"
                   >
                     {isActionLoading ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -210,7 +210,7 @@ export function ItemCard({
                     variant={isClaimed ? "outline" : "default"}
                     size="sm"
                     disabled={isLoading || isActionLoading}
-                    className="whitespace-nowrap"
+                    className="whitespace-nowrap min-w-[80px] h-9"
                   >
                     {isActionLoading ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -228,7 +228,7 @@ export function ItemCard({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 w-8 p-0"
+                  className="h-9 w-9 p-0"
                   disabled={isLoading || isActionLoading}
                 >
                   <MoreVertical className="h-4 w-4" />
